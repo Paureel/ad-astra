@@ -45,6 +45,12 @@ candidate data, and the scoped Lean build and axiom audit. Passing CI is
 evidence of those checks, not formal record promotion. Core trust boundaries
 have maintainer ownership in `.github/CODEOWNERS`.
 
+`CODEOWNERS` records the intended review ownership. The current GitHub plan
+does not support protected-branch enforcement for this private repository, so
+contributors and maintainers must follow the review policy manually. Submit
+changes through PRs and obtain independent review before merging changes to
+the benchmark, evaluator, formal gate, or workflows.
+
 ## Give an agent a bounded assignment
 
 Copy this into your coding agent and replace the task identifier:
