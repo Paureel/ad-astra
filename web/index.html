@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#101b1c" />
+    <meta
+      name="description"
+      content="An interactive scientific view of WarpProof geometry and its energy history."
+    />
+    <title>WarpProof</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+    <script type="importmap">
+      { "imports": { "three": "./vendor/three.module.min.js" } }
+    </script>
+  </head>
+  <body>
+    <main id="experience">
+      <div id="scene-container">
+        <canvas
+          id="geometry-canvas"
+          tabindex="0"
+          role="img"
+          aria-label="Interactive 3D geometry in comoving metres. Drag to orbit, scroll to zoom, arrow keys to rotate."
+        ></canvas>
+        <div id="scene-fallback" hidden>
+          3D unavailable. Open the density slice to inspect the computed field.
+        </div>
+      </div>
+      <header>
+        <a class="wordmark" href="#" aria-label="WarpProof"
+          ><svg viewBox="0 0 36 36" aria-hidden="true">
+            <ellipse
+              cx="18"
+              cy="18"
+              rx="16"
+              ry="7"
+              transform="rotate(-38 18 18)"
+            />
+            <ellipse
+              cx="18"
+              cy="18"
+              rx="16"
+              ry="7"
+              transform="rotate(38 18 18)"
+            />
+            <circle cx="18" cy="18" r="2.5" /></svg
+          >WarpProof<span class="speed" title="Fixed benchmark speed"
+            >2c</span
+          ></a
+        >
+        <div class="header-actions">
+          <button
+            id="provenance-open"
+            class="icon-button"
+            type="button"
+            aria-label="Provenance and scientific scope"
+            title="Provenance"
+          >
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="8.5" />
+              <path d="M12 10v7m0-10v1" />
+            </svg>
+          </button>
+        </div>
+      </header>
+      <div class="energy">
+        <div id="candidate-title"></div>
+        <h1 id="energy-value" aria-label="Absolute Eulerian source energy">
+          —
+        </h1>
+        <div id="energy-change" title="Numerical change from baseline"></div>
+      </div>
+      <div id="error-message" role="alert" hidden></div>
+      <div class="scene-tools" aria-label="Visualization controls">
+        <div class="layer-controls">
+          <button
+            id="layer-field"
+            type="button"
+            aria-label="Energy density"
+            title="Energy density"
+            aria-pressed="true"
+          >
+            <svg viewBox="0 0 24 24">
+              <circle cx="7" cy="7" r=".8" />
+              <circle cx="12" cy="5" r=".8" />
+              <circle cx="17" cy="7" r=".8" />
+              <circle cx="5" cy="12" r=".8" />
+              <circle cx="10" cy="10" r=".8" />
+              <circle cx="15" cy="12" r=".8" />
+              <circle cx="19" cy="12" r=".8" />
+              <circle cx="7" cy="17" r=".8" />
+              <circle cx="12" cy="15" r=".8" />
+              <circle cx="17" cy="17" r=".8" />
+              <circle cx="12" cy="19" r=".8" />
+            </svg></button
+          ><button
+            id="layer-rays"
+            type="button"
+            aria-label="Null rays"
+            title="Null rays"
+            aria-pressed="true"
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="M3 18Q12 3 21 6M3 18q10-7 18-3M3 18h18" />
+            </svg></button
+          ><button
+            id="layer-reference"
+            type="button"
+            aria-label="Reference surfaces"
+            title="Reference surfaces"
+            aria-pressed="true"
+          >
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="8" />
+              <ellipse cx="12" cy="12" rx="4" ry="8" />
+              <path d="M4 12h16" />
+            </svg>
+          </button>
+        </div>
+        <div class="camera-presets">
+          <button
+            type="button"
+            data-camera="perspective"
+            class="selected"
+            aria-pressed="true"
+            aria-label="Perspective view"
+            title="Perspective view"
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="m12 3 9 5v8l-9 5-9-5V8zM3 8l9 5 9-5m-9 5v8" />
+            </svg></button
+          ><button
+            type="button"
+            data-camera="xy"
+            aria-pressed="false"
+            title="XY view"
+          >
+            XY</button
+          ><button
+            type="button"
+            data-camera="yz"
+            aria-pressed="false"
+            title="YZ view"
+          >
+            YZ</button
+          ><button
+            type="button"
+            id="reset-camera"
+            aria-label="Reset camera"
+            title="Reset camera"
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="M5 10a7 7 0 1 1 1 7M5 4v6h6" />
+            </svg>
+          </button>
+        </div>
+        <button
+          id="slice-toggle"
+          type="button"
+          aria-pressed="false"
+          aria-label="Open density slice"
+          title="Density slice"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M4 4h16v16H4zM4 12h16m-8-8v16" />
+          </svg></button
+        ><button
+          id="capture-scene"
+          type="button"
+          aria-label="Download geometry image"
+          title="Download image"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="m9 5 1-2h4l1 2h6v15H3V5z" />
+            <circle cx="12" cy="12" r="4" />
+          </svg>
+        </button>
+      </div>
+      <div class="field-key" aria-label="Fixed linear energy-density scale">
+        <span id="scale-positive"></span><span class="ramp"><i></i></span
+        ><span id="scale-negative"></span><span class="density-unit">J/m³</span>
+      </div>
+      <div id="slice-panel" hidden>
+        <div class="slice-controls">
+          <select id="slice-plane" aria-label="Slice plane">
+            <option value="xy">XY</option>
+            <option value="yz">YZ</option></select
+          ><select id="slice-offset" aria-label="Slice offset"></select
+          ><button
+            id="slice-close"
+            class="icon-button"
+            type="button"
+            aria-label="Close density slice"
+          >
+            ×
+          </button>
+        </div>
+        <div class="density-wrap">
+          <canvas
+            id="density-canvas"
+            role="img"
+            aria-label="Computed energy-density slice in comoving metres, using the fixed linear signed color scale"
+          ></canvas
+          ><span id="density-y"></span><span id="density-x"></span>
+        </div>
+        <div id="density-readout" aria-live="polite"></div>
+      </div>
+      <div class="scale-bar" title="20 metres at the scene origin along x">
+        20 m<i></i>
+      </div>
+      <div class="timeline">
+        <svg
+          id="history-chart"
+          role="group"
+          aria-label="Logarithmic publication and contributor energy timeline. One-hour time bins, with dates."
+        ></svg>
+        <div class="timeline-controls">
+          <button
+            id="history-prev"
+            type="button"
+            aria-label="Previous evaluation"
+          >
+            ←</button
+          ><input
+            id="history-scrubber"
+            type="range"
+            min="0"
+            max="1"
+            step="1"
+            value="1"
+            aria-label="Scrub saved evaluation history"
+          /><button
+            id="history-next"
+            type="button"
+            aria-label="Next evaluation"
+          >
+            →
+          </button>
+        </div>
+      </div>
+      <footer>
+        <span class="evidence"><i></i>Numerical only</span>
+        <div>
+          <button
+            id="export-history"
+            type="button"
+            title="Export energy history"
+          >
+            CSV ↓</button
+          ><button
+            id="export-artifact"
+            type="button"
+            title="Export selected scientific artifact"
+          >
+            JSON ↓
+          </button>
+        </div>
+      </footer>
+      <dialog id="provenance-dialog">
+        <div class="dialog-heading">
+          <h2 id="provenance-heading">Provenance</h2>
+          <button
+            id="provenance-close"
+            class="icon-button"
+            type="button"
+            aria-label="Close provenance"
+          >
+            ×
+          </button>
+        </div>
+        <div class="dialog-body">
+          <dl id="provenance-fields"></dl>
+          <h3>Exact parameters</h3>
+          <pre id="parameters-json"></pre>
+          <h3>Scope</h3>
+          <p id="entry-scope">
+            Absolute Eulerian source energy for the fixed 2c geometry, including
+            the infinite exterior tail. Values are numerical estimates, not
+            certified bounds or propulsion requirements. Formal promotion
+            remains unavailable.
+          </p>
+          <p>
+            The wireframe marks the baseline F profile; the 8 m craft is a scale
+            reference. The density field is interpolated from sampled data,
+            revolved around the x axis using the benchmark’s axisymmetry. Colors
+            share a fixed linear signed scale. The finite display omits
+            densities below 0.005% of that scale; it does not truncate the
+            energy integral.
+          </p>
+          <p>
+            Only supplied finite null-ray integrations are drawn. Imported files
+            report their own numerical checks; the browser does not verify their
+            calculations. History dates are recorded evaluation times, not
+            certification dates. Local imports are saved in this browser.
+          </p>
+          <a
+            id="source-link"
+            href="https://arxiv.org/abs/2512.18008v1"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Rodal, 2025 ↗</a
+          >
+        </div>
+      </dialog>
+      <div id="live-status" class="sr-only" aria-live="polite"></div>
+    </main>
+    <script src="default-result.js"></script>
+    <script src="history.js"></script>
+    <script src="timeline.js"></script>
+    <script src="app.js"></script>
+    <script type="module" src="scene.js"></script>
+  </body>
+</html>

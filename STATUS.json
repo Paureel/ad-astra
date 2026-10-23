@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-10-23T22:07:56.318612+00:00",
+  "status": "numerical_research_bootstrap",
+  "benchmark": "rodal-2c-v1-draft",
+  "formal_certification": false,
+  "promotion_enabled": false,
+  "certified_records": 0,
+  "evaluator_source_sha256": "24a6a154679ef20caa7109128f1c4d33fe85124e9be25bc74e0632936941dde6",
+  "benchmark_sha256": "52445e98a20de0f2768c6c385ed1fdea80e39351b00eb685690ea358cd44bee9",
+  "formal_source_sha256": "9f581405b43e71db0d5a978944d4c5cc64421281d22911e2eae58bd368ab3744",
+  "environment": {
+    "python": "3.12.14",
+    "packages": {
+      "numpy": "2.3.5",
+      "scipy": "1.17.0",
+      "setuptools": "84.0.0",
+      "wheel": "0.48.0"
+    },
+    "lean": "4.35.0",
+    "lean_archive_sha256": "7289597a44543246c9227b8cae501767e095ce17f6d448b95fc4a8dc97268f6d"
+  },
+  "numerical_results": {
+    "baseline_energy_J": 4.2500805046360227e+45,
+    "search_example_energy_J": 4.248944992714964e+45,
+    "relative_search_reduction": 0.0002671742146578282,
+    "largest_published_fixture_relative_difference": 0.004128139800007924,
+    "baseline_max_stored_null_residual": 1.59205537667384e-10,
+    "density_slices": 6,
+    "null_rays": 9
+  },
+  "checks": [
+    {
+      "command": "python3 -m unittest discover -s tests -v",
+      "exit_code": 0,
+      "tests_passed": 26,
+      "scope": "Numerical, schema, regression and intentional refusal tests"
+    },
+    {
+      "command": "python3 formal/diagnostics/direct_ricci_check.py",
+      "exit_code": 0,
+      "scope": "Exact rational sample-point tensor identities; not a continuum theorem"
+    },
+    {
+      "command": "python3 -m warpproof reproduce --output results/paper-reproduction.json",
+      "exit_code": 0,
+      "scope": "Published rounded finite-window comparison"
+    },
+    {
+      "command": "python3 -m warpproof evaluate candidates/rodal-baseline.json --output results/baseline.json",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -m warpproof search --iterations 8 --output candidates/search-example.json",
+      "exit_code": 0,
+      "iterations": 8,
+      "accepted_search_steps": 3
+    },
+    {
+      "command": "python3 -m warpproof evaluate candidates/search-example.json --output results/search-example.json",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -m warpproof render-data candidates/rodal-baseline.json --output web/default-result.js",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -m warpproof render-data candidates/search-example.json --output results/search-example-viewer.json",
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -m warpproof verify --require-formal",
+      "exit_code": 2,
+      "expected_exit_code": 2,
+      "scope": "Correctly refuses incomplete formal certification"
+    },
+    {
+      "command": "node --check web/app.js",
+      "exit_code": 0
+    },
+    {
+      "command": "node web/validate-viewer.cjs",
+      "exit_code": 0
+    },
+    {
+      "command": "lake build",
+      "cwd": "formal",
+      "exit_code": 0,
+      "scope": "Scoped rational arithmetic and polynomial library"
+    },
+    {
+      "command": "lake env lean Audit.lean",
+      "cwd": "formal",
+      "exit_code": 0,
+      "audited_theorems": 18,
+      "allowed_axioms": [
+        "propext",
+        "Classical.choice",
+        "Quot.sound"
+      ]
+    },
+    {
+      "command": "python3 -m pip install --no-deps --no-build-isolation -e . --target TEMPORARY_INSTALL_DIRECTORY",
+      "exit_code": 0,
+      "scope": "Local editable package build and install using preinstalled pinned dependencies"
+    }
+  ],
+  "additional_review": {
+    "viewer_actual_data_parser": "passed",
+    "viewer_dom_canvas_runtime_mock": "passed, including controls, hover, imports, fixed-scale rejection and immutable formal status",
+    "browser_layout_screenshot": "not run: no browser executable available; optional download was blocked by environment network permissions",
+    "github_actions_hosted_execution": "not run; workflow syntax and embedded scripts checked locally"
+  },
+  "remaining_obligations": [
+    "Formal GR metric-to-energy bridge",
+    "Exact JSON-to-formal-candidate binding",
+    "Global continuum admissibility",
+    "Rigorous whole-space real energy enclosure including tail",
+    "Independent review before first certified record"
+  ],
+  "interpretation": "A lower numerical source-energy integral is not a proof of material realizability, engine fuel requirements, startup or control."
+}

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "id": "example-small-potential-perturbation",
+  "benchmark": "rodal-2c-v1-draft",
+  "coefficients": [{"x_power": 1, "transverse_power": 0, "coefficient": "1/10000"}],
+  "description": "Small exact rational perturbation for exercising the evaluator. No energy improvement is claimed."
+}

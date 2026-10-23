@@ -1,0 +1,14 @@
+{
+  "name": "warpproof-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build-web.mjs",
+    "test": "node --check web/app.js && node --check web/scene.js && node --check web/timeline.js && node web/validate-viewer.cjs",
+    "data": "python3 scripts/build_viewer_history.py"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "publications": [
+    {
+      "id": "rodal-2025-publication",
+      "author": "Rodal",
+      "full_author": "José Rodal",
+      "published_on": "2025-12-17",
+      "date_precision": "day",
+      "energy_J": 2.66e44,
+      "significant_digits": 3,
+      "kind": "publication",
+      "quantity": "tail-corrected whole-space absolute proper energy",
+      "parameters": {
+        "speed_c": 1,
+        "R_m": 5,
+        "sigma_per_m": 4
+      },
+      "source_url": "https://arxiv.org/html/2512.18008v1",
+      "publication_url": "https://doi.org/10.1007/s10714-025-03495-x",
+      "source_location": "Appendix 9, Eq. (9.14) and the following absolute-energy total; Table 5",
+      "date_source": "https://link.springer.com/article/10.1007/s10714-025-03495-x",
+      "comparison_scope": "Original 1c, 5 m publication fixture, not the fixed 2c benchmark. Rounded numerical tail extrapolation; not a certified energy bound."
+    }
+  ],
+  "evaluations": [
+    {
+      "id": "rodal-2c-reference",
+      "author": {
+        "name": "Rodal",
+        "source": "published metric attribution; repository 2c calculation"
+      },
+      "kind": "benchmark_reference",
+      "report_path": "results/baseline.json",
+      "viewer_path": "web/default-result.js"
+    },
+    {
+      "id": "paureel-first-entry",
+      "author": {
+        "name": "Paureel",
+        "source": "user-assigned attribution of the supplied bootstrap search example"
+      },
+      "kind": "repository_evaluation",
+      "report_path": "results/search-example.json",
+      "viewer_path": "results/search-example-viewer.json"
+    }
+  ]
+}

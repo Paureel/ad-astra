@@ -1,0 +1,43 @@
+name: Geometry candidate
+description: Record a candidate and its evidence without implying certification.
+title: "[Candidate] "
+body:
+  - type: input
+    id: benchmark
+    attributes:
+      label: Benchmark identifier and evaluator commit
+    validations:
+      required: true
+  - type: textarea
+    id: parameters
+    attributes:
+      label: Exact parameters and provenance
+      description: Link the candidate file and its digest. Identify the source paper or search procedure.
+    validations:
+      required: true
+  - type: textarea
+    id: claim
+    attributes:
+      label: Claimed result
+      description: State the energy quantity, units, numerical uncertainty or proved bound, and evidence status.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: Give exact commands, environment, precision, and refinement settings.
+    validations:
+      required: true
+  - type: textarea
+    id: obligations
+    attributes:
+      label: Remaining proof obligations
+      description: Identify continuous conditions, error estimates, and physical assumptions not yet established.
+    validations:
+      required: true
+  - type: textarea
+    id: credit
+    attributes:
+      label: Attribution
+      description: Credit contributors, AI assistance, papers, and predecessor candidates.

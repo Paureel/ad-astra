@@ -1,0 +1,6 @@
+# Tested with CPython 3.12.14. Exact direct dependencies for reproducible numerics.
+numpy==2.3.5
+scipy==1.17.0
+setuptools==84.0.0
+wheel==0.48.0
+

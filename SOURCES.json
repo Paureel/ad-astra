@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "id": "rodal-2025",
+      "type": "published_research_with_pinned_preprint",
+      "title": "A warp drive with predominantly positive invariant energy density and global Hawking-Ellis Type I",
+      "author": "Jose Rodal",
+      "journal": "General Relativity and Gravitation 58, article 1 (2026)",
+      "doi": "10.1007/s10714-025-03495-x",
+      "url": "https://arxiv.org/abs/2512.18008v1",
+      "html": "https://arxiv.org/html/2512.18008v1",
+      "used_for": "Published profile, scalar potential, Hessian energy identity, original fixture and energy tables. The standardized 2c score and candidate family are repository calculations."
+    },
+    {
+      "id": "bobrick-martire-2021",
+      "type": "published_research",
+      "title": "Introducing Physical Warp Drives",
+      "authors": ["Alexey Bobrick", "Gianni Martire"],
+      "doi": "10.1088/1361-6382/abdf6e",
+      "url": "https://arxiv.org/html/2102.06824v2",
+      "used_for": "Comparison with Appendix A.3 radial optimizer and section 4.2 longitudinal flattening. Not the selected benchmark."
+    },
+    {
+      "id": "lean-proof-validation",
+      "type": "official_documentation",
+      "url": "https://lean-lang.org/doc/reference/latest/ValidatingProofs/",
+      "used_for": "Kernel proof validation and explicit trust boundaries. The archive pins its own toolchain version."
+    },
+    {
+      "id": "lean-release-4-35-0",
+      "type": "official_release",
+      "url": "https://github.com/leanprover/lean4/releases/tag/v4.35.0",
+      "used_for": "Pinned Lean compiler. Archive digest is recorded in formal/README.md and CI."
+    },
+    {
+      "id": "github-actions-security",
+      "type": "official_documentation",
+      "url": "https://docs.github.com/en/actions/reference/security/secure-use",
+      "used_for": "Read-only public-PR workflow and dependency pinning guidance."
+    },
+    {
+      "id": "collaboration-pattern",
+      "type": "public_repository",
+      "url": "https://github.com/CrocSwap/integer-mult-bounds",
+      "used_for": "User-selected collaboration analogy: bounded tasks, exact evidence, reproducible review and scoped claims. No code copied and no endorsement implied."
+    }
+  ]
+}
