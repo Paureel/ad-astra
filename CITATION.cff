@@ -1,11 +1,12 @@
 cff-version: 1.2.0
 message: "Cite the selected published geometry and the exact repository revision used. This bootstrap has no DOI."
-title: "WarpProof: a fixed 2c source-energy challenge"
+title: "Ad Astra: a fixed 2c source-energy challenge"
 version: 0.1.0
 type: software
 license: MIT
 authors:
-  - name: "WarpProof bootstrap contributors"
+  - name: "Ad Astra contributors"
+repository-code: "https://github.com/Paureel/ad-astra"
 abstract: >-
   A numerical and scoped Lean-proof bootstrap for a frozen superluminal
   warp-geometry source-energy optimization benchmark. Formal promotion is

@@ -442,7 +442,7 @@ function updateScale() {
 function fail(error) {
   $("scene-fallback").hidden = false;
   $("capture-scene").disabled = true;
-  console.error("WarpProof 3D:", error);
+  console.error("Ad Astra 3D:", error);
 }
 try {
   renderer = new THREE.WebGLRenderer({
@@ -538,7 +538,7 @@ try {
     ctx.font = "14px monospace";
     ctx.fillStyle = "#c6d9ac";
     ctx.fillText(
-      "WarpProof · " +
+      "Ad Astra · " +
         currentArtifact.candidate.id +
         " · " +
         currentArtifact.benchmark.id,

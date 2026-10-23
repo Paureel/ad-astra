@@ -1,4 +1,4 @@
-# WarpProof: a fixed 2c source-energy challenge
+# Ad Astra: a fixed 2c source-energy challenge
 
 A collaborative mathematical research repository for reducing one quantity:
 **the whole-space absolute Eulerian source energy, in joules, of a fixed
@@ -17,8 +17,8 @@ branches and open pull requests; access does not require making the project
 public. Human and agent contributions follow the same reproducibility rules.
 
 ```bash
-git clone https://github.com/Paureel/warpproof.git
-cd warpproof
+git clone https://github.com/Paureel/ad-astra.git
+cd ad-astra
 make setup          # Python 3.12 installed; creates an isolated .venv
 make check          # Python + viewer checks, static build, certification refusal
 npm run dev         # local viewer; no npm dependencies to install
@@ -33,6 +33,10 @@ Start with [CONTRIBUTING.md](CONTRIBUTING.md),
 [AGENTS.md](AGENTS.md), and the machine-readable [task backlog](tasks/backlog.json).
 Pick one bounded task, preserve exact inputs, and include a concrete handoff.
 The existing issue and PR templates capture scientific evidence and authorship.
+
+Ad Astra continues the supplied WarpProof bootstrap. The `warpproof` Python
+module and command, Lean namespaces, and browser history keys stay compatible
+with existing scripts and scientific receipts.
 
 ## Current result and exact scope
 
@@ -176,7 +180,7 @@ preserved records. No upstream code or endorsement is included.
 `MANIFEST.sha256` identifies the included source files. After intentional edits,
 run `make manifest`, then verify with
 `python3 scripts/package_release.py --verify-manifest`. Run
-`python3 scripts/package_release.py` to create `build/warpproof-source.zip`.
+`python3 scripts/package_release.py` to create `build/ad-astra-source.zip`.
 Packaging honors `.gitignore` in a checkout and excludes local environments,
 credentials, caches, and scratch research. No Git history or remote
 configuration is bundled.

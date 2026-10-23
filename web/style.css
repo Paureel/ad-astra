@@ -132,6 +132,24 @@ header > * {
   align-items: center;
   gap: 24px;
 }
+.contribute-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.contribute-call {
+  color: var(--acid);
+}
+.contribute-link:hover {
+  color: var(--acid);
+}
+.contribute-link:hover .contribute-call {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
 .icon-button {
   width: 30px;
   height: 30px;
@@ -652,7 +670,14 @@ dialog::backdrop {
     font-size: 10px;
   }
   .header-actions {
-    gap: 13px;
+    gap: 10px;
+  }
+  .contribute-link {
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3px;
+    font-size: 11px;
   }
   .header-actions .icon-button {
     width: 24px;

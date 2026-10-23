@@ -1,4 +1,4 @@
-/* WarpProof scientific viewer. No network, remote scripts, or executable imports. */
+/* Ad Astra scientific viewer. No network, remote scripts, or executable imports. */
 (() => {
   "use strict";
   const C = 299792458;
@@ -1095,7 +1095,7 @@
     download(
       rows.map((row) => row.map(cell).join(",")).join("\r\n"),
       "text/csv;charset=utf-8",
-      "warpproof-energy-history.csv",
+      "ad-astra-energy-history.csv",
     );
   });
   function toggleSlice(open) {

@@ -1,4 +1,4 @@
-# Start here: a collaborative warp-geometry research project
+# Start here: Ad Astra
 
 This repository is a working numerical bootstrap for a future proof-checked
 energy challenge. Its initial model is the smooth irrotational warp family in
@@ -191,7 +191,7 @@ The detailed evidence states and promotion requirements are in
 
 ## 6. Collaborate through GitHub
 
-The private `Paureel/warpproof` repository includes issue templates, a PR
+The private `Paureel/ad-astra` repository includes issue templates, a PR
 template, code ownership, agent guidance, and read-only GitHub Actions checks.
 Invited contributors can follow `CONTRIBUTING.md` to work locally and submit a
 reviewable change. Repository access does not publish or deploy the viewer.

@@ -1,4 +1,4 @@
-# WarpProof agent entry point
+# Ad Astra agent entry point
 
 Read `AGENTS.md` first; it is the shared project guidance. Then read `README.md`,
 `CONTRIBUTING.md`, and the task's relevant scientific documentation. The

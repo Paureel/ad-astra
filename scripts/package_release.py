@@ -53,7 +53,7 @@ def manifest_text(files):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=ROOT/"build"/"warpproof-source.zip")
+    parser.add_argument("--output", type=Path, default=ROOT/"build"/"ad-astra-source.zip")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--verify-manifest", action="store_true")
     mode.add_argument("--manifest-only", action="store_true", help="Refresh hashes without creating an archive.")
@@ -74,7 +74,7 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(args.output, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for path in files:
-            info = zipfile.ZipInfo(f"{ROOT.name}/{path.relative_to(ROOT).as_posix()}", date_time=(2026, 1, 1, 0, 0, 0))
+            info = zipfile.ZipInfo(f"ad-astra/{path.relative_to(ROOT).as_posix()}", date_time=(2026, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
             archive.writestr(info, path.read_bytes(), compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)

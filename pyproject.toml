@@ -3,9 +3,9 @@ requires = ["setuptools==84.0.0", "wheel==0.48.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "warpproof-bootstrap"
+name = "ad-astra"
 version = "0.1.0"
-description = "A reproducible, proof-oriented superluminal warp-energy research bootstrap"
+description = "Ad Astra: reproducible, proof-oriented warp-geometry energy research"
 readme = "README.md"
 requires-python = ">=3.11"
 license = {text = "MIT"}

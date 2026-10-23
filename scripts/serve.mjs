@@ -46,7 +46,7 @@ const server = createServer(async (req, res) => {
   }
 });
 server.listen(port, "127.0.0.1", () =>
-  console.log(`WarpProof · http://127.0.0.1:${port}`),
+  console.log(`Ad Astra · http://127.0.0.1:${port}`),
 );
 server.on("error", (error) => {
   console.error(error.message);

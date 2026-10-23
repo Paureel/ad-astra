@@ -15,8 +15,8 @@ there is no need to change visibility. If working from a permitted fork, use
 the same PR process with `main` as the base branch.
 
 ```bash
-git clone https://github.com/Paureel/warpproof.git
-cd warpproof
+git clone https://github.com/Paureel/ad-astra.git
+cd ad-astra
 make setup
 make check
 git switch -c codex/wp-001-reproduction-audit
