@@ -47,7 +47,7 @@ with existing scripts and scientific receipts.
 | Exterior domain | all of space, including the analytic asymptotic tail |
 | Search space | nine bounded rational coefficients in a compact scalar-potential perturbation |
 | Numerical evaluator | working Python implementation with refinement and an independent 4D tensor check |
-| Scientific viewer | local ship/reference-bubble view, computed density slices, integrated null rays |
+| Scientific viewer | local 3D geometry, computed density slices, sampled null-ray replay, ideal annihilation mass comparison |
 | Formal component | compiled Lean 4.35.0 arithmetic and polynomial lemmas with an axiom audit |
 | Certified energy records | **none** |
 | Promotion gate | **disabled**, `verify --require-formal` exits 2 |

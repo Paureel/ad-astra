@@ -12,6 +12,41 @@ The icon controls select layers, camera views, the density slice, and PNG export
 Controls expose accessible names, focus states, and tooltips. Arrow keys rotate
 the focused canvas, +/− zoom, and 0 restores the perspective camera.
 
+The play/pause control replays the finite numerical ray integration over 12
+seconds. Markers share the same recorded coordinate time (displayed in ns),
+with piecewise-linear interpolation between time-stamped samples. They stop
+at each ray's final sample and disappear outside the display cube; they never
+extrapolate or imply a periodic physical trajectory. The loop then restarts.
+The density field and reference surfaces stay stationary. Playback is capped
+at 30 fps, stops while the tab is hidden, and starts paused when the browser
+requests reduced motion. The globe graticules rotate illustratively.
+
+## Annihilation comparison
+
+The selected candidate's unchanged `energy.value_J` is converted to an ideal
+rest-energy equivalent using `m_antimatter = E / (2c²)` and
+`m_matter = m_antimatter`. Both annihilating rest masses contribute. The display
+assumes complete conversion and complete recovery; it does not model production,
+containment, losses, a reaction, or an energy source for the geometry. Antimatter
+does not supply a negative-energy stress tensor. This is a scale comparison,
+not an inferred propulsion fuel requirement.
+
+`physics.js` uses the exact SI value `c = 299792458 m/s` from
+[NIST](https://www.nist.gov/pml/special-publication-330/sp-330-section-2)
+and the measured reference Earth mass `5.9722e24 kg` from the
+[NASA Earth Fact Sheet](https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html).
+The annihilation interpretation follows
+[CERN](https://home.cern/science/physics/antimatter/).
+The `anti-Earths` value means Earth masses of antimatter; an equal mass of
+ordinary matter is shown beside it. Counts are rounded to four significant
+digits and update with the selected timeline evaluation.
+
+The paired spheres share one linear length scale with the small Earth reference:
+their radius ratio is the cube root of their mass in Earth masses. This is an
+equal-density volume comparison, not a proposed self-gravitating object. It
+has a separate scale from the metre-based geometry. Violet identifies antimatter
+and amber ordinary matter by convention; these are not predicted appearances.
+
 The timeline includes Rodal's original published **2.66 × 10^44 J** tail-corrected
 total (Appendix 9, Eq. 9.14 and following paragraph), published **17 December
 2025**, with the paper's original 1c, 5 m, sigma=4/m settings. This is a separate
@@ -66,7 +101,7 @@ change the permanent numerical-only display or enable formal promotion.
   for display; no energy is removed from the reported integral. Opacity helps
   expose structure and is not a second physical field.
 - The signed color mapping is linear, symmetric, and fixed to the baseline.
-  Orange denotes negative density; mint denotes positive density, in J/m³.
+  Rose denotes negative density; cyan denotes positive density, in J/m³.
   Values outside the scale saturate and are counted in provenance and the slice.
 - The slice interpolates the supplied density grid. Offset and plane selection
   update the 3D slice and optional 2D view. Their axes and units remain explicit.
@@ -77,10 +112,14 @@ change the permanent numerical-only display or enable formal promotion.
 - Ray lines connect only the supplied finite numerical integration samples.
   Segments outside the display cube are omitted; no spline or extrapolation is
   used. A finite integration interval does not establish an event horizon.
+- Ray-marker size and brightness are visual highlights, not photon size,
+  frequency, or intensity. The shared ns clock is coordinate time, not a local
+  observer's proper time. Background gradients are decorative, not data.
 - The floor grid has 5 m spacing. The scale bar projects 20 m along x at the
   current view's origin, and hides when that projection is too short or large.
 - PNG exports include the candidate, benchmark, parameter hash, units, and
-  numerical status. JSON preserves the original artifact; CSV reports history.
+  numerical status, plus the displayed ray time. JSON preserves the original
+  artifact; CSV reports history.
 
 Model source: [Rodal, arXiv:2512.18008v1](https://arxiv.org/abs/2512.18008v1).
 The benchmark's 2c energy is the repository calculation, not a figure quoted

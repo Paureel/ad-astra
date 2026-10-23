@@ -2,6 +2,24 @@
   "schema_version": 1,
   "sources": [
     {
+      "id": "cern-annihilation",
+      "type": "official_scientific_reference",
+      "url": "https://home.cern/science/physics/antimatter/",
+      "used_for": "Ideal rest-energy comparison: annihilation consumes both matter and antimatter masses; this is not a propulsion fuel model or a source of negative stress-energy."
+    },
+    {
+      "id": "nasa-earth-mass",
+      "type": "official_scientific_reference",
+      "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html",
+      "used_for": "Reference Earth mass 5.9722e24 kg, table last updated 15 November 2024, for the viewer's ideal annihilation mass comparison."
+    },
+    {
+      "id": "nist-si-speed-of-light",
+      "type": "official_scientific_reference",
+      "url": "https://www.nist.gov/pml/special-publication-330/sp-330-section-2",
+      "used_for": "Exact SI speed of light, 299792458 m/s, in the viewer's rest-energy conversion."
+    },
+    {
       "id": "rodal-2025",
       "type": "published_research_with_pinned_preprint",
       "title": "A warp drive with predominantly positive invariant energy density and global Hawking-Ellis Type I",

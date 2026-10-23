@@ -5,6 +5,8 @@ const $ = (id) => document.getElementById(id);
 const host = $("scene-container"),
   canvas = $("geometry-canvas");
 const { sampleSlice } = window.WarpProofViewer;
+const { createRaySampler, densityRGB } = window.AdAstraPhysics;
+const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
 let renderer,
   controls,
   camera,
@@ -17,33 +19,84 @@ let renderer,
 let pending = false,
   currentArtifact = null,
   framingFactor = 1;
+let playing = !motionPreference.matches,
+  elapsed_ms = 0,
+  lastTick = null,
+  lastRender = -Infinity;
 const layers = { field: true, rays: true, reference: true };
-const positive = new THREE.Color("#a5d7c5"),
-  negative = new THREE.Color("#f19670"),
-  zero = new THREE.Color("#172826");
 const rayColors = [
-  "#d5e99f",
-  "#d5dfa3",
-  "#d0cfac",
-  "#d3be9a",
-  "#b3cbb5",
-  "#8ebcb6",
-  "#84abb6",
-  "#7d9eaa",
-  "#7c9196",
+  "#ffdc8a",
+  "#ffb87c",
+  "#f391cd",
+  "#c59bff",
+  "#8fb8ff",
+  "#7bbfff",
+  "#b4a5ff",
+  "#c992de",
+  "#e9a8ac",
 ];
 
 function requestRender() {
   if (!pending) {
     pending = true;
-    requestAnimationFrame(() => {
+    requestAnimationFrame((now) => {
       pending = false;
-      if (!renderer) return;
+      if (!renderer || document.hidden) {
+        lastTick = null;
+        return;
+      }
+      if (playing && lastTick !== null)
+        elapsed_ms += Math.max(0, now - lastTick);
+      lastTick = now;
+      // Cap playback at 30 fps; paused camera views render on demand.
+      if (playing && now - lastRender < 1000 / 30) {
+        requestRender();
+        return;
+      }
       controls.update();
+      animateRays();
       renderer.render(scene, camera);
       updateScale();
+      lastRender = now;
+      window.dispatchEvent(
+        new CustomEvent("astra:frame", { detail: { elapsed_ms } }),
+      );
+      if (playing) requestRender();
     });
   }
+}
+function setPlaying(value) {
+  playing = value;
+  lastTick = null;
+  const button = $("motion-toggle");
+  button.setAttribute("aria-pressed", String(playing));
+  const action = playing
+    ? "Pause sampled-ray playback"
+    : "Play sampled-ray playback";
+  button.setAttribute("aria-label", action);
+  button.title = action;
+  document.documentElement.dataset.motion = playing ? "on" : "off";
+  requestRender();
+}
+function animateRays() {
+  const playback = rayGroup?.userData.playback;
+  if (!playback?.length) return;
+  const first = Math.min(...playback.map((p) => p.sampler.start_s));
+  const last = Math.max(...playback.map((p) => p.sampler.end_s));
+  const time = first + ((elapsed_ms % 12000) / 12000) * (last - first);
+  const extent = currentArtifact.geometry.extent_m;
+  const place = (object, point) => {
+    object.visible = !!point && Math.max(...point.map(Math.abs)) <= extent;
+    if (object.visible) object.position.set(...point);
+  };
+  for (const { sampler, marker, trail } of playback) {
+    place(marker, sampler.sample(time));
+    trail.forEach((dot, i) =>
+      place(dot, sampler.sample(time - (i + 1) * (last - first) * 0.012)),
+    );
+  }
+  $("ray-clock").textContent = (time * 1e9).toFixed(0) + " ns";
+  $("ray-clock").hidden = !layers.rays;
 }
 function dispose(group) {
   if (!group) return;
@@ -80,7 +133,7 @@ function line(points, color, opacity = 0.4, dashed = false) {
   if (dashed) object.computeLineDistances();
   return object;
 }
-function label(text, position, size = 2, color = "#83977f") {
+function label(text, position, size = 2, color = "#9baacb") {
   const c = document.createElement("canvas");
   c.width = 256;
   c.height = 64;
@@ -111,16 +164,16 @@ function createGrid() {
           [-40, i, -24],
           [40, i, -24],
         ],
-        "#5f746a",
-        i === 0 ? 0.24 : 0.1,
+        "#7182b8",
+        i === 0 ? 0.3 : 0.13,
       ),
       line(
         [
           [i, -40, -24],
           [i, 40, -24],
         ],
-        "#5f746a",
-        i === 0 ? 0.24 : 0.1,
+        "#7182b8",
+        i === 0 ? 0.3 : 0.13,
       ),
     );
   }
@@ -133,7 +186,7 @@ function createGrid() {
         [-40, 40, -24],
         [-40, -40, -24],
       ],
-      "#78917a",
+      "#8b8dc0",
       0.2,
     ),
   );
@@ -159,7 +212,7 @@ function createReference(data) {
         radius * Math.sin(phi),
       ]);
     }
-    group.add(line(pts, "#96b792", 0.18));
+    group.add(line(pts, "#92a4df", 0.26));
   }
   for (let latitude = -60; latitude <= 60; latitude += 20) {
     const lat = (latitude * Math.PI) / 180,
@@ -172,7 +225,7 @@ function createReference(data) {
         radius * Math.sin(lat),
       ]);
     }
-    group.add(line(pts, "#acc49b", 0.17));
+    group.add(line(pts, "#a2a3e8", 0.23));
   }
   for (const surface of levels) {
     const pts = [];
@@ -184,7 +237,7 @@ function createReference(data) {
         0,
       ]);
     }
-    group.add(line(pts, "#c3d4ad", surface.f === 0.5 ? 0.6 : 0.18));
+    group.add(line(pts, "#aabafa", surface.f === 0.5 ? 0.75 : 0.27));
   }
   const cabin = new THREE.Group();
   for (let plane = 0; plane < 3; plane++) {
@@ -195,7 +248,7 @@ function createReference(data) {
         b = data.geometry.cabin_radius_m * Math.sin(p);
       pts.push(plane === 0 ? [a, b, 0] : plane === 1 ? [a, 0, b] : [0, a, b]);
     }
-    cabin.add(line(pts, "#a7c6ab", 0.18, true));
+    cabin.add(line(pts, "#a0d9f5", 0.28, true));
   }
   group.add(cabin);
   return group;
@@ -218,9 +271,13 @@ function createField(data) {
         value = sampleSlice(source, x, r),
         strength = Math.min(1, Math.abs(value) / scale);
       if (strength < 0.00005) continue;
-      const color = zero
-        .clone()
-        .lerp(value < 0 ? negative : positive, strength);
+      const rgb = densityRGB(value, scale);
+      const color = new THREE.Color().setRGB(
+        rgb[0] / 255,
+        rgb[1] / 255,
+        rgb[2] / 255,
+        THREE.SRGBColorSpace,
+      );
       const segments = Math.max(8, Math.ceil(r * 3));
       for (let k = 0; k < segments; k++) {
         const angle = (k / segments) * Math.PI * 2;
@@ -245,8 +302,8 @@ function createField(data) {
     depthWrite: false,
     vertexColors: true,
     uniforms: { pixelRatio: { value: Math.min(devicePixelRatio || 1, 2) } },
-    vertexShader: `attribute float strength; varying vec3 vColor; varying float vStrength; uniform float pixelRatio; void main(){vColor=color;vStrength=strength;vec4 view=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*view;gl_PointSize=clamp(170./-view.z,1.0,3.0)*pixelRatio;}`,
-    fragmentShader: `varying vec3 vColor;varying float vStrength;void main(){float r=length(gl_PointCoord-vec2(.5));if(r>.5)discard;float a=(1.-smoothstep(.15,.5,r))*(.10+.65*pow(vStrength,.4));gl_FragColor=vec4(vColor,a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>}`,
+    vertexShader: `attribute float strength; varying vec3 vColor; varying float vStrength; uniform float pixelRatio; void main(){vColor=color;vStrength=strength;vec4 view=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*view;gl_PointSize=clamp(200./-view.z,1.1,3.5)*pixelRatio;}`,
+    fragmentShader: `varying vec3 vColor;varying float vStrength;void main(){float r=length(gl_PointCoord-vec2(.5));if(r>.5)discard;float a=(1.-smoothstep(.15,.5,r))*(.12+.78*pow(vStrength,.4));gl_FragColor=vec4(vColor,a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>}`,
   });
   group.add(new THREE.Points(geometry, material));
   return group;
@@ -254,9 +311,11 @@ function createField(data) {
 function createRays(data) {
   const group = new THREE.Group(),
     extent = data.geometry.extent_m;
+  group.userData.playback = [];
   data.rays.forEach((ray, i) => {
     // Only supplied ray samples are drawn; paths outside the visible cube stop
-    // at the cube. No spline, invented ray, or animated extrapolation is used.
+    // at the cube. Playback interpolates supplied samples in their coordinate
+    // time, never extrapolating beyond an individual ray's finite integration.
     let segment = [];
     for (const p of ray.points) {
       if (
@@ -271,6 +330,46 @@ function createRays(data) {
     }
     if (segment.length > 1)
       group.add(line(segment, rayColors[i % rayColors.length], 0.68));
+    try {
+      const sampler = createRaySampler(ray.points);
+      const marker = new THREE.Group();
+      const color = rayColors[i % rayColors.length];
+      marker.add(
+        new THREE.Mesh(
+          new THREE.SphereGeometry(0.28, 8, 6),
+          new THREE.MeshBasicMaterial({ color: "#fff7ed" }),
+        ),
+      );
+      marker.add(
+        new THREE.Mesh(
+          new THREE.SphereGeometry(0.85, 12, 8),
+          new THREE.MeshBasicMaterial({
+            color,
+            transparent: true,
+            opacity: 0.18,
+            depthWrite: false,
+            blending: THREE.AdditiveBlending,
+          }),
+        ),
+      );
+      const trail = Array.from(
+        { length: 5 },
+        (_, j) =>
+          new THREE.Mesh(
+            new THREE.SphereGeometry(0.24, 6, 4),
+            new THREE.MeshBasicMaterial({
+              color,
+              transparent: true,
+              opacity: 0.65 - j * 0.1,
+              depthWrite: false,
+            }),
+          ),
+      );
+      group.add(marker, ...trail);
+      group.userData.playback.push({ sampler, marker, trail });
+    } catch {
+      // Partial/invalid time series keep their supplied static path only.
+    }
   });
   return group;
 }
@@ -298,7 +397,7 @@ function createCraft(length) {
     new THREE.Mesh(
       geometry,
       new THREE.MeshStandardMaterial({
-        color: "#c8d7ad",
+        color: "#c5d5f6",
         metalness: 0.45,
         roughness: 0.5,
         side: THREE.DoubleSide,
@@ -310,7 +409,7 @@ function createCraft(length) {
     new THREE.LineSegments(
       edges,
       new THREE.LineBasicMaterial({
-        color: "#eff9d9",
+        color: "#fff1cc",
         transparent: true,
         opacity: 0.8,
       }),
@@ -329,14 +428,11 @@ function createSlice(data, slice) {
         v = slice.v_m[0] + (j / (n - 1)) * (slice.v_m.at(-1) - slice.v_m[0]),
         value = sampleSlice(slice, u, v),
         strength = Math.min(1, Math.abs(value) / scale);
-      const color = zero
-        .clone()
-        .lerp(value < 0 ? negative : positive, strength);
-      color.convertLinearToSRGB();
+      const rgb = densityRGB(value, scale);
       const k = (j * n + i) * 4;
-      buffer[k] = Math.round(color.r * 255);
-      buffer[k + 1] = Math.round(color.g * 255);
-      buffer[k + 2] = Math.round(color.b * 255);
+      buffer[k] = rgb[0];
+      buffer[k + 1] = rgb[1];
+      buffer[k + 2] = rgb[2];
       buffer[k + 3] = Math.round((0.02 + 0.55 * strength) * 255);
     }
   const texture = new THREE.DataTexture(buffer, n, n);
@@ -368,6 +464,7 @@ function updateData({ artifact, slice }) {
   if (!renderer) return;
   if (currentArtifact !== artifact) {
     currentArtifact = artifact;
+    elapsed_ms = 0;
     for (const group of [field, rayGroup, reference, craft]) dispose(group);
     field = createField(artifact);
     rayGroup = createRays(artifact);
@@ -442,6 +539,8 @@ function updateScale() {
 function fail(error) {
   $("scene-fallback").hidden = false;
   $("capture-scene").disabled = true;
+  $("motion-toggle").disabled = true;
+  $("ray-clock").hidden = true;
   console.error("Ad Astra 3D:", error);
 }
 try {
@@ -454,12 +553,12 @@ try {
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2("#142121", 0.003);
+  scene.fog = new THREE.FogExp2("#0b1229", 0.002);
   camera = new THREE.PerspectiveCamera(40, 1, 0.1, 600);
   camera.up.set(0, 0, 1);
   controls = createControls();
-  scene.add(new THREE.AmbientLight("#cadfb9", 1.8));
-  const light = new THREE.DirectionalLight("#f2ffd6", 3);
+  scene.add(new THREE.AmbientLight("#a6baff", 1.8));
+  const light = new THREE.DirectionalLight("#ffe9d1", 3);
   light.position.set(10, -20, 30);
   scene.add(light);
   createGrid();
@@ -475,6 +574,17 @@ try {
     requestRender();
   }).observe(host);
   setCamera("perspective");
+  setPlaying(playing);
+  $("motion-toggle").addEventListener("click", () => setPlaying(!playing));
+  $("ray-clock").title =
+    "Shared ray coordinate time; the finite integration is replayed over 12 seconds.";
+  motionPreference.addEventListener("change", (event) => {
+    if (event.matches) setPlaying(false);
+  });
+  document.addEventListener("visibilitychange", () => {
+    lastTick = null;
+    if (!document.hidden) requestRender();
+  });
   if (window.WarpProofState) updateData(window.WarpProofState);
   window.addEventListener("warp:select", (event) => updateData(event.detail));
   window.addEventListener("warp:slice", (event) => updateData(event.detail));
@@ -530,13 +640,13 @@ try {
     renderer.render(scene, camera);
     const output = document.createElement("canvas");
     output.width = canvas.width;
-    output.height = canvas.height + 100;
+    output.height = canvas.height + 120;
     const ctx = output.getContext("2d");
-    ctx.fillStyle = "#142020";
+    ctx.fillStyle = "#0b1229";
     ctx.fillRect(0, 0, output.width, output.height);
     ctx.drawImage(canvas, 0, 0);
     ctx.font = "14px monospace";
-    ctx.fillStyle = "#c6d9ac";
+    ctx.fillStyle = "#d4dafa";
     ctx.fillText(
       "Ad Astra · " +
         currentArtifact.candidate.id +
@@ -545,7 +655,7 @@ try {
       22,
       canvas.height + 30,
     );
-    ctx.fillStyle = "#849b83";
+    ctx.fillStyle = "#9daaca";
     ctx.fillText(
       "Comoving metres · numerical only · reference F surfaces · 8 m scale craft",
       22,
@@ -556,6 +666,13 @@ try {
       "Parameters: " + currentArtifact.candidate.parameter_hash,
       22,
       canvas.height + 77,
+    );
+    ctx.fillText(
+      "Ray coordinate time: " +
+        $("ray-clock").textContent +
+        (layers.rays ? " · sampled finite integration" : " · rays hidden"),
+      22,
+      canvas.height + 99,
     );
     const link = document.createElement("a");
     link.href = output.toDataURL("image/png");

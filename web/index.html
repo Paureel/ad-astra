@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#101b1c" />
+    <meta name="theme-color" content="#090f21" />
     <meta
       name="description"
       content="Ad Astra — an interactive scientific view of warp geometry and its energy history."
@@ -80,8 +80,42 @@
         </h1>
         <div id="energy-change" title="Numerical change from baseline"></div>
       </div>
+      <div id="equivalence" aria-label="Ideal annihilation energy equivalent">
+        <canvas
+          id="equivalence-canvas"
+          role="img"
+          aria-label="Matter and antimatter mass comparison"
+        ></canvas>
+        <div class="equivalence-value">
+          <span class="equivalence-heading">Annihilation equivalent</span>
+          <div class="antimatter-value">
+            <span id="antimatter-count">—</span>
+            <span class="antimatter-unit">anti-Earths</span>
+          </div>
+          <div class="matter-value">
+            <span id="matter-count"></span
+            ><span class="equivalence-formula">E = 2mc² · ideal</span>
+          </div>
+        </div>
+      </div>
       <div id="error-message" role="alert" hidden></div>
       <div class="scene-tools" aria-label="Visualization controls">
+        <button
+          id="motion-toggle"
+          type="button"
+          aria-label="Pause sampled-ray playback"
+          title="Pause sampled-ray playback"
+          aria-pressed="true"
+        >
+          <svg viewBox="0 0 24 24">
+            <path class="pause-symbol" d="M9 6v12m6-12v12" />
+            <path class="play-symbol" d="m9 5 10 7-10 7z" />
+          </svg>
+        </button>
+        <output
+          id="ray-clock"
+          aria-label="Sampled ray coordinate time"
+        ></output>
         <div class="layer-controls">
           <button
             id="layer-field"
@@ -298,10 +332,49 @@
             energy integral.
           </p>
           <p>
+            Moving markers use a shared coordinate time and piecewise-linear
+            interpolation of the supplied finite null-ray integrations. Playback
+            slows their finite time interval to a 12-second loop; it is not
+            real-time travel. The stationary density field does not evolve.
+            Sphere rotation in the mass comparison is illustrative.
+          </p>
+          <p>
+            The annihilation comparison uses E = 2mc²: m kilograms of antimatter
+            and the same mass of ordinary matter, with ideal complete conversion
+            and energy recovery. It compares rest energy only; it is not a fuel
+            requirement or a way to produce the geometry's stress-energy.
+            Antimatter has positive rest energy; it does not supply negative
+            density. Sphere volume represents mass at Earth's mean density, on a
+            separate scale from the metre-based geometry. The colors distinguish
+            the two masses, not their predicted appearance.
+          </p>
+          <p>
             Only supplied finite null-ray integrations are drawn. Imported files
             report their own numerical checks; the browser does not verify their
             calculations. History dates are recorded evaluation times, not
             certification dates. Local imports are saved in this browser.
+          </p>
+          <p class="comparison-sources">
+            <a
+              href="https://home.cern/science/physics/antimatter/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >CERN · annihilation</a
+            >
+            ·
+            <a
+              href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              >NASA · Earth mass</a
+            >
+            ·
+            <a
+              href="https://www.nist.gov/pml/special-publication-330/sp-330-section-2"
+              target="_blank"
+              rel="noopener noreferrer"
+              >NIST · c</a
+            >
           </p>
           <a
             id="source-link"
@@ -317,7 +390,9 @@
     <script src="default-result.js"></script>
     <script src="history.js"></script>
     <script src="timeline.js"></script>
+    <script src="physics.js"></script>
     <script src="app.js"></script>
+    <script src="equivalence.js"></script>
     <script type="module" src="scene.js"></script>
   </body>
 </html>

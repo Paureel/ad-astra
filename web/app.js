@@ -288,11 +288,6 @@
   let selectedIndex = 0,
     db = null,
     densityBox = null;
-  const palette = {
-    zero: [20, 36, 32],
-    negative: [241, 150, 112],
-    positive: [165, 215, 197],
-  };
   const superscript = (n) =>
     String(n)
       .split("")
@@ -439,6 +434,17 @@
       ["Numerical error estimate", sci(data.energy.error_estimate_J) + " J"],
       ["Error scope", data.energy.error_kind],
       ["Display scale", sci(densityScale) + " J/m³, linear"],
+      [
+        "Annihilation equivalent",
+        sci(
+          window.AdAstraPhysics.annihilationEquivalent(data.energy.value_J)
+            .antimatter_kg,
+        ) + " kg antimatter + equal matter; ideal E = 2mc²",
+      ],
+      [
+        "Comparison constants",
+        "c = 299792458 m/s (exact SI); Earth mass = 5.9722 × 10²⁴ kg (NASA)",
+      ],
       [
         "Clipped samples",
         data.slices.reduce(
@@ -591,7 +597,7 @@
       svg("path", {
         d: `M${box.left},${box.top}V${bottom}H${end}`,
         fill: "none",
-        stroke: "#5d7b67",
+        stroke: "#596e9b",
         "stroke-width": 0.65,
         opacity: 0.7,
       }),
@@ -617,7 +623,7 @@
           y1: tick.y,
           x2: end,
           y2: tick.y,
-          stroke: "#65836a",
+          stroke: "#6f83ae",
           "stroke-width": 0.5,
           opacity: tick.major ? 0.25 : 0.1,
           "stroke-dasharray": tick.major ? "2 5" : "1 7",
@@ -660,7 +666,7 @@
           y1: bottom,
           x2: tick.x,
           y2: bottom + 4,
-          stroke: "#65836a",
+          stroke: "#6f83ae",
           "stroke-width": 0.5,
           opacity: 0.55,
         }),
@@ -714,7 +720,7 @@
             .map((p, i) => (i ? "L" : "M") + p.x + "," + p.y)
             .join(" "),
           fill: "none",
-          stroke: "#95ad74",
+          stroke: "#8caee8",
           "stroke-width": 1,
           opacity: 0.6,
         }),
@@ -785,7 +791,7 @@
             cx: point.x,
             cy: point.y,
             r: 8,
-            fill: "#b7ca92",
+            fill: "#b4d8ff",
             opacity: 0.14,
           }),
         );
@@ -794,8 +800,8 @@
           cx: point.x,
           cy: point.y,
           r: publication ? 4.5 : chosen ? 3.5 : 4,
-          fill: publication || !chosen ? "#12211e" : "#d7e8af",
-          stroke: publication ? "#d6ae81" : "#a1bc82",
+          fill: publication || !chosen ? "#101a32" : "#d2e7ff",
+          stroke: publication ? "#d6ae81" : "#92bde9",
           "stroke-width": publication ? 1 : 1.2,
         }),
       );
@@ -805,7 +811,7 @@
           svg("path", {
             d: `M${point.x},${point.y}L${slot.x},${slot.y + 5}`,
             fill: "none",
-            stroke: publication ? "#ab9272" : "#7b9967",
+            stroke: publication ? "#ab9272" : "#7d97c8",
             "stroke-width": 0.5,
             opacity: 0.5,
           }),
@@ -861,9 +867,7 @@
     }
   }
   function densityColor(value) {
-    const n = Math.min(1, Math.abs(value) / densityScale),
-      color = value < 0 ? palette.negative : palette.positive;
-    return palette.zero.map((v, i) => Math.round(v + (color[i] - v) * n));
+    return window.AdAstraPhysics.densityRGB(value, densityScale);
   }
   function drawDensity() {
     if (!entries.length) return;
@@ -899,11 +903,11 @@
       }
     bc.putImageData(pixels, 0, 0);
     ctx.drawImage(buffer, x, y, size, size);
-    ctx.strokeStyle = "#46674d";
+    ctx.strokeStyle = "#596e9b";
     ctx.lineWidth = 0.6;
     ctx.strokeRect(x, y, size, size);
     ctx.font = "7px SFMono-Regular, monospace";
-    ctx.fillStyle = "#78946b";
+    ctx.fillStyle = "#99a9cd";
     ctx.textAlign = "center";
     const a = slice.u_m[0],
       b = slice.u_m.at(-1),
@@ -918,7 +922,7 @@
       ctx.textAlign = "center";
     }
     ctx.setLineDash([2, 3]);
-    ctx.strokeStyle = "#789b69";
+    ctx.strokeStyle = "#86a2cf";
     ctx.lineWidth = 0.55;
     for (const s of current().artifact.geometry.isosurfaces || []) {
       const r2 = s.radius_m * s.radius_m - slice.offset_m * slice.offset_m;
