@@ -48,6 +48,7 @@ web/.local-*
 .npmrc
 .pypirc
 .openai/
+.netlify/
 
 # Personal agent / editor state; shared guidance lives in AGENTS.md and .github/
 .codex/

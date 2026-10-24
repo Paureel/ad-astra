@@ -2,6 +2,8 @@
 
 ![Energy timeline: Rodal’s 1c publication and 2c reference, Paureel’s v1 contribution and the separate compact100 candidate. Logarithmic axes; numerical results.](docs/energy-timeline.svg)
 
+[Open the visualization](https://ad-astra-warp.netlify.app)
+
 Collaborative research into lower-energy warp geometries, with a reproducible
 evaluator, scoped Lean proofs, and an interactive 3D visualization.
 
@@ -36,7 +38,8 @@ make check
 ```
 
 Proof changes also require [Lean 4.35.0](formal/README.md) and `make check-formal`.
-`npm run build` prepares the static viewer in `dist/`; hosting stays local.
+`npm run build` prepares the static viewer in `dist/`. `netlify.toml` declares
+the build and output directory; publication requires an explicit deployment.
 
 ## Contribute
 

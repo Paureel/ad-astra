@@ -6,7 +6,7 @@ const root = fileURLToPath(new URL("../", import.meta.url));
 await rm(target, { recursive: true, force: true });
 await mkdir(target, { recursive: true });
 for (const file of await readdir(source)) {
-  if (file.endsWith(".cjs") || file.endsWith(".md")) continue;
+  if (file.startsWith(".") || file.endsWith(".cjs") || file.endsWith(".md")) continue;
   await cp(`${source}/${file}`, `${target}/${file}`, { recursive: true });
 }
 for (const file of ["LICENSE", "NOTICE", "licenses", "SOURCES.json"]) {
