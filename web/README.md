@@ -30,6 +30,11 @@ are preserved in JSON exports; plain-language light-path explanations and final
 stored values remain inside provenance. The play/pause control affects only
 the illustrative mass-comparison rotation, which updates at at most 24 fps,
 stops in hidden tabs and starts paused under reduced-motion preferences.
+Settled views do not redraw WebGL just to animate that 2D comparison. Touch
+devices start with a smaller optical map and finer refinement tiles, retaining
+the same metric, ray equations and acceptance mask. A lost WebGL context pauses
+rendering; when the browser restores it, the viewer rebuilds the optical maps
+and resumes the selected geometry and camera instead of keeping a failure overlay.
 
 ## Annihilation comparison
 

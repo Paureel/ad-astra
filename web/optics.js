@@ -72,13 +72,18 @@ export async function loadCompactCache() {
 }
 
 export class StellarOptics {
-  constructor(renderer, invalidate, compactCache = null) {
+  constructor(renderer, invalidate, compactCache = null, { mobile = false } = {}) {
     this.renderer = renderer;
     this.invalidate = invalidate;
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     this.enabled = true;
     this.dirty = true;
     this.quality = 1;
+    this.baseRows = mobile ? 72 : 144;
+    this.minimumRows = mobile ? 48 : 72;
+    this.maximumWidth = mobile ? 256 : 512;
+    this.interactiveGrid = mobile ? 4 : 1;
+    this.refineGrid = mobile ? 8 : 4;
     this.signature = "";
     this.changedAt = 0;
     this.refineIndex = 0;
@@ -194,6 +199,51 @@ export class StellarOptics {
     }
     return false;
   }
+  suspend() {
+    clearTimeout(this.refineTimer);
+    this.refineTimer = null;
+    this.dirty = true;
+    this.refined = false;
+    this.refineIndex = 0;
+    this.signature = "";
+  }
+  restoreContext() {
+    this.suspend();
+    const gl = this.renderer.getContext();
+    this.available = !!gl.getExtension("EXT_color_buffer_float");
+    this.floatLinear = !!gl.getExtension("OES_texture_float_linear");
+    for (const texture of this.compactTextures) {
+      texture.minFilter = texture.magFilter = this.floatLinear ? THREE.LinearFilter : THREE.NearestFilter;
+      texture.needsUpdate = true;
+    }
+    for (const target of [this.target, this.fineTarget])
+      target.texture.type = this.floatLinear ? THREE.FloatType : THREE.HalfFloatType;
+    this.traceMaterial.uniforms.compactLinear.value = this.floatLinear;
+    this.skyMaterial.uniforms.continuityThreshold.value = this.floatLinear ? 0.9998 : 0.998;
+    this.skyMaterial.uniforms.directionMap.value = this.target.texture;
+    this.skyMaterial.uniforms.skyMap.value.needsUpdate = true;
+  }
+  traceTile(target, index, grid) {
+    const ix = index % grid, iy = Math.floor(index / grid);
+    const x = Math.floor(ix * target.width / grid),
+      y = Math.floor(iy * target.height / grid),
+      w = Math.floor((ix + 1) * target.width / grid) - x,
+      h = Math.floor((iy + 1) * target.height / grid) - y;
+    target.viewport.set(x, y, w, h);
+    target.scissor.set(x, y, w, h);
+    target.scissorTest = true;
+    const u = this.traceMaterial.uniforms;
+    u.mapOffset.value.set(x / target.width, y / target.height);
+    u.mapScale.value.set(w / target.width, h / target.height);
+    this.renderer.setRenderTarget(target);
+    try {
+      this.renderer.render(this.traceScene, this.camera);
+    } finally {
+      this.renderer.setRenderTarget(null);
+      u.mapOffset.value.set(0, 0);
+      u.mapScale.value.set(1, 1);
+    }
+  }
   render(camera) {
     camera.updateMatrixWorld();
     const orientation = new THREE.Matrix3().setFromMatrix4(camera.matrixWorld);
@@ -206,17 +256,18 @@ export class StellarOptics {
     sy.tangent.value = tangent;
     sy.lensed.value = this.available && this.enabled && !!this.metric;
     if (sy.lensed.value && (this.dirty || signature !== this.signature)) {
-      const h = Math.round(144 * this.quality),
-        w = Math.max(32, Math.round(h * camera.aspect));
+      const h = Math.max(this.minimumRows, Math.round(this.baseRows * this.quality)),
+        w = Math.max(32, Math.min(this.maximumWidth, Math.round(h * camera.aspect)));
       if (this.target.width !== w || this.target.height !== h)
         this.target.setSize(w, h);
       tr.observer.value.copy(camera.position);
       tr.orientation.value.copy(orientation);
       tr.aspect.value = camera.aspect;
       tr.tangent.value = tangent;
-      this.renderer.setRenderTarget(this.target);
-      this.renderer.render(this.traceScene, this.camera);
-      this.renderer.setRenderTarget(null);
+      // Bound work per draw on mobile, including the analytic older metrics.
+      // All tiles use the same camera, field and integration settings.
+      for (let i = 0; i < this.interactiveGrid ** 2; i++)
+        this.traceTile(this.target, i, this.interactiveGrid);
       this.signature = signature;
       this.dirty = false;
       sy.directionMap.value = this.target.texture;
@@ -230,33 +281,20 @@ export class StellarOptics {
       !this.refined &&
       performance.now() - this.changedAt >= 120
     ) {
-      // Refine a stationary view in small tiles. Each tile has less work than
-      // a full interactive map, avoiding a long single-frame GPU submission.
+      // One small tile per frame; mobile uses finer tiling to avoid long draws.
       const w = this.target.width * 2,
         h = this.target.height * 2;
       if (this.fineTarget.width !== w || this.fineTarget.height !== h)
         this.fineTarget.setSize(w, h);
-      const ix = this.refineIndex % 4,
-        iy = Math.floor(this.refineIndex / 4);
-      const x = Math.floor((ix * w) / 4),
-        y = Math.floor((iy * h) / 4),
-        tw = Math.floor(((ix + 1) * w) / 4) - x,
-        th = Math.floor(((iy + 1) * h) / 4) - y;
-      this.fineTarget.viewport.set(x, y, tw, th);
-      this.fineTarget.scissor.set(x, y, tw, th);
-      this.fineTarget.scissorTest = true;
-      tr.mapOffset.value.set(x / w, y / h);
-      tr.mapScale.value.set(tw / w, th / h);
       tr.stepScale.value = 0.25;
       tr.budget.value = 1280;
-      this.renderer.setRenderTarget(this.fineTarget);
-      this.renderer.render(this.traceScene, this.camera);
-      this.renderer.setRenderTarget(null);
-      tr.mapOffset.value.set(0, 0);
-      tr.mapScale.value.set(1, 1);
-      tr.stepScale.value = 0.5;
-      tr.budget.value = 640;
-      if (++this.refineIndex === 16) {
+      try {
+        this.traceTile(this.fineTarget, this.refineIndex, this.refineGrid);
+      } finally {
+        tr.stepScale.value = 0.5;
+        tr.budget.value = 640;
+      }
+      if (++this.refineIndex === this.refineGrid ** 2) {
         this.refined = true;
         sy.directionMap.value = this.fineTarget.texture;
       } else this.invalidate();
@@ -273,6 +311,8 @@ export class StellarOptics {
       width: this.refined ? this.fineTarget.width : this.target.width,
       height: this.refined ? this.fineTarget.height : this.target.height,
       refined: this.refined,
+      interactive_rows: this.target.height,
+      refinement_tiles: this.refineGrid ** 2,
       boundary_m: 65536,
       step_budget: 640,
       step_scale: 0.5,

@@ -9,6 +9,7 @@ const host = $("scene-container"),
 const { sampleSlice } = window.WarpProofViewer;
 const { densityRGB } = window.AdAstraPhysics;
 const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
+const mobileGraphics = matchMedia("(pointer: coarse)").matches;
 let renderer,
   controls,
   camera,
@@ -19,6 +20,14 @@ let renderer,
   craft,
   optics;
 let pending = false,
+  frameHandle = null,
+  sceneDirty = true,
+  sceneReady = false,
+  graphicsState = "starting",
+  fatalGraphicsError = false,
+  contextLosses = 0,
+  contextRestorations = 0,
+  gpuFrames = 0,
   currentArtifact = null,
   framingFactor = 1;
 let playing = !motionPreference.matches,
@@ -31,11 +40,17 @@ let playing = !motionPreference.matches,
 const layers = { field: true, reference: true };
 
 function requestRender() {
+  sceneDirty = true;
+  scheduleFrame();
+}
+function scheduleFrame() {
+  if (!sceneReady || graphicsState !== "ready" || document.hidden) return;
   if (!pending) {
     pending = true;
-    requestAnimationFrame((now) => {
+    frameHandle = requestAnimationFrame((now) => {
       pending = false;
-      if (!renderer || document.hidden) {
+      frameHandle = null;
+      if (graphicsState !== "ready" || document.hidden) {
         lastTick = null;
         return;
       }
@@ -43,34 +58,41 @@ function requestRender() {
         elapsed_ms += Math.max(0, now - lastTick);
       lastTick = now;
       controls.update();
-      renderScene();
-      if (lastRender > 0 && now - lastRender < 250) {
-        const dt = now - lastRender;
-        frameDeltas.push(dt);
-        if (frameDeltas.length > 240) frameDeltas.shift();
-        slowFrames =
-          dt > 27 && dt < 250 ? slowFrames + 1 : Math.max(0, slowFrames - 1);
-        // Reduce the angular map resolution, never the geodesic equations.
-        if (slowFrames > 16 && now - lastQualityChange > 1500) {
-          if (optics.reduceQuality()) lastQualityChange = now;
-          else if (renderer.getPixelRatio() > 1) {
-            renderer.setPixelRatio(1);
-            renderer.setSize(host.clientWidth, host.clientHeight, false);
-            lastQualityChange = now;
+      if (sceneDirty) {
+        // Clear before rendering: optical refinement can request the next tile.
+        sceneDirty = false;
+        renderScene();
+        if (lastRender > 0 && now - lastRender < 250) {
+          const dt = now - lastRender;
+          frameDeltas.push(dt);
+          if (frameDeltas.length > 240) frameDeltas.shift();
+          slowFrames =
+            dt > 27 && dt < 250 ? slowFrames + 1 : Math.max(0, slowFrames - 1);
+          // Reduce angular resolution, never the geodesic equations.
+          if (slowFrames > 16 && now - lastQualityChange > 1500) {
+            if (optics.reduceQuality()) {
+              lastQualityChange = now;
+              requestRender();
+            } else if (renderer.getPixelRatio() > 1) {
+              setPixelRatio(1);
+              lastQualityChange = now;
+            }
+            slowFrames = 0;
           }
-          slowFrames = 0;
         }
+        updateScale();
+        lastRender = now;
       }
-      updateScale();
-      lastRender = now;
       window.dispatchEvent(
         new CustomEvent("astra:frame", { detail: { elapsed_ms } }),
       );
-      if (playing) requestRender();
+      // The illustrative 2D mass rotation does not change the 3D scene.
+      if (playing) scheduleFrame();
     });
   }
 }
 function renderScene() {
+  if (graphicsState !== "ready" || renderer.getContext().isContextLost()) return;
   // The schematic scale craft must not enclose and obscure a cabin observer.
   if (craft) craft.visible = camera.position.length() > 6;
   renderer.autoClear = true;
@@ -78,6 +100,13 @@ function renderScene() {
   renderer.autoClear = false;
   renderer.clearDepth();
   renderer.render(scene, camera);
+  gpuFrames++;
+}
+function setPixelRatio(value) {
+  renderer.setPixelRatio(value);
+  for (const points of field?.children || [])
+    points.material.uniforms.pixelRatio.value = renderer.getPixelRatio();
+  requestRender();
 }
 function solutionFor(data) {
   return window.AD_ASTRA_SOLUTIONS.solutions.find(
@@ -296,7 +325,7 @@ function createField(data) {
       vertexColors: true,
       depthTest: true,
       uniforms: {
-        pixelRatio: { value: Math.min(devicePixelRatio || 1, 1.5) },
+        pixelRatio: { value: renderer.getPixelRatio() },
       },
       vertexShader: `varying vec3 vColor;uniform float pixelRatio;
       void main(){vColor=color;vec4 view=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*view;gl_PointSize=clamp(200./-view.z,2.5,3.5)*pixelRatio;}`,
@@ -495,6 +524,12 @@ function setupDiagnostics() {
           0,
         ),
         playing,
+        graphics_state: graphicsState,
+        context_losses: contextLosses,
+        context_restorations: contextRestorations,
+        gpu_frames: gpuFrames,
+        gpu_memory: { ...renderer.info.memory },
+        mobile_graphics: mobileGraphics,
         shader_errors:window.AdAstraShaderErrors||[],
         candidate_id:currentArtifact?.candidate.id,
         parameter_hash:currentArtifact?.candidate.parameter_hash,
@@ -519,7 +554,7 @@ function setupDiagnostics() {
     setOpticalRows(rows) {
       if (!Number.isInteger(rows) || rows < 72 || rows > 576)
         throw new Error("Audit resolution must be 72–576 rows.");
-      optics.quality = rows / 144;
+      optics.quality = rows / optics.baseRows;
       optics.dirty = true;
       requestRender();
     },
@@ -576,6 +611,9 @@ function setupDiagnostics() {
   };
 }
 function fail(error) {
+  fatalGraphicsError = true;
+  graphicsState = "failed";
+  $("scene-fallback").textContent = "3D unavailable. Open the density slice to inspect the computed field.";
   $("scene-fallback").hidden = false;
   $("capture-scene").disabled = true;
   $("motion-toggle").disabled = true;
@@ -585,15 +623,51 @@ try {
   renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
-    antialias: true,
-    preserveDrawingBuffer: true,
+    antialias: !mobileGraphics,
+    preserveDrawingBuffer: false,
   });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+  setPixelRatio(Math.min(devicePixelRatio || 1, mobileGraphics ? 1.25 : 1.5));
+  // Install these before loading the field cache: Safari can reset the GPU
+  // during initial loading as well as while switching or restoring tabs.
+  canvas.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    if (fatalGraphicsError) return;
+    graphicsState = "lost";
+    contextLosses++;
+    if (frameHandle !== null) cancelAnimationFrame(frameHandle);
+    pending = false;
+    frameHandle = null;
+    lastTick = null;
+    optics?.suspend();
+    $("scene-fallback").textContent = "Restoring 3D…";
+    $("scene-fallback").hidden = false;
+    $("capture-scene").disabled = true;
+    $("motion-toggle").disabled = true;
+  });
+  canvas.addEventListener("webglcontextrestored", () => {
+    if (fatalGraphicsError) return;
+    contextRestorations++;
+    // Three.js rebuilds its GL resources before this listener runs. Optical
+    // render targets contain no valid directions until explicitly recalculated.
+    optics?.restoreContext();
+    setPixelRatio(1);
+    renderer.setSize(host.clientWidth, host.clientHeight, false);
+    optics?.reduceQuality();
+    graphicsState = sceneReady ? "ready" : "starting";
+    $("scene-fallback").hidden = true;
+    $("capture-scene").disabled = false;
+    $("motion-toggle").disabled = false;
+    if (optics) $("stellar-lensing").disabled = !optics.available;
+    lastTick = null;
+    lastRender = -Infinity;
+    requestRender();
+  });
   renderer.debug.onShaderError=(gl,program,vertex,fragment)=>{
+    if (gl.isContextLost()) return;
     (window.AdAstraShaderErrors ||= []).push(gl.getProgramInfoLog(program)+"\n"+gl.getShaderInfoLog(vertex)+"\n"+gl.getShaderInfoLog(fragment));
     fail("3D graphics could not be compiled. Reload to retry.");
   };
-  optics = new StellarOptics(renderer, requestRender, await loadCompactCache());
+  optics = new StellarOptics(renderer, requestRender, await loadCompactCache(), { mobile: mobileGraphics });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2("#0b1229", 0.002);
@@ -620,7 +694,10 @@ try {
   new ResizeObserver(() => {
     const w = host.clientWidth,
       h = host.clientHeight;
-    renderer.setSize(w, h, false);
+    if (!w || !h) return;
+    const previous = renderer.getSize(new THREE.Vector2());
+    if (graphicsState !== "lost" && (previous.x !== w || previous.y !== h))
+      renderer.setSize(w, h, false);
     camera.aspect = w / h;
     const factor = Math.max(1, 0.9 / camera.aspect);
     camera.position.multiplyScalar(factor / framingFactor);
@@ -637,7 +714,8 @@ try {
   document.addEventListener("visibilitychange", () => {
     lastTick = null;
     lastRender = -Infinity;
-    if (!document.hidden) requestRender();
+    if (document.hidden) optics.suspend();
+    else requestRender();
   });
   if (window.WarpProofState) updateData(window.WarpProofState);
   window.addEventListener("warp:select", (event) => updateData(event.detail));
@@ -741,10 +819,9 @@ try {
     link.download = currentArtifact.candidate.id + "-geometry.png";
     link.click();
   });
-  canvas.addEventListener("webglcontextlost", (event) => {
-    event.preventDefault();
-    fail("WebGL context lost. Reload to restore 3D.");
-  });
+  sceneReady = true;
+  graphicsState = renderer.getContext().isContextLost() ? "lost" : "ready";
+  requestRender();
 } catch (error) {
   fail(error);
 }

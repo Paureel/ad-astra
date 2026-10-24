@@ -119,9 +119,12 @@ horizon diagnosis. Near critical directions need more careful integration; no
 rigorous all-direction error bound or global causal analysis is claimed.
 The eternal stationary geometry is assumed; bubble creation is not modeled.
 
-A GPU angular map normally has 144 interactive rows and an aspect-matched width. It updates
+A desktop GPU angular map starts with 144 interactive rows and an aspect-matched
+width capped at 512. Touch devices start with 72 rows and a width capped at 256.
+Mobile interactive maps use 4×4 scissored draws to bound per-draw work, including
+when switching back to an analytic older metric. It updates
 when the camera or selected metric changes, then interpolates to screen
-resolution. After 120 ms without camera changes, 16 small scissored tiles
+resolution. After 120 ms without camera changes, 16 desktop or 64 mobile scissored tiles
 progressively compute a map with twice as many rows and columns, quarter-scale
 steps and a 1,280-step budget. Only the completed refined map replaces the
 interactive map. Paused/reduced-motion views also finish this calculation. Floating-point linear filtering is used where supported, otherwise
@@ -132,6 +135,22 @@ Interpolated source vectors whose length falls below 0.9998 are rejected
 (0.998 on half-float fallback), rather than normalizing an unresolved blend of
 widely separated directions into a false source image.
 The view is not a photon-counting or calibrated magnification prediction.
+
+Touch devices cap the main buffer pixel ratio at 1.25 and omit multisample
+antialiasing. Drawing-buffer preservation is disabled; PNG export renders and
+copies the canvas synchronously. Only camera, data, layer, resize, sky loading
+and unfinished optical refinement trigger WebGL draws. The illustrative 2D
+mass rotation does not redraw a settled 3D scene.
+
+WebGL context loss pauses rendering and cancels pending refinement. On the
+browser's restoration event, Three.js recreates GL resources; the viewer
+refreshes extension capabilities and cache textures, discards optical-map
+completion state, and recomputes the selected metric's directions. The camera,
+history selection, layer choices and motion preference are retained. Recovery
+reduces resolution to relieve pressure; it does not alter integration settings.
+An actual shader/initialization failure still fails visibly. A browser or OS
+that cannot restore its context may still require a reload. See the
+[WebGL context restoration contract](https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/webglcontextrestored_event).
 
 `EXT_color_buffer_float` is required for calculated lensing; without it the
 viewer shows the unlensed reference sky and disables the comparison control.
@@ -219,7 +238,8 @@ during normal use.
 `AdAstraDiagnostics.audit()` and `.benchmark({orbit:true,duration_ms:6000})`
 allow local inspection without exposing labels in the experience. Hardware,
 viewport, browser, critical directions and background load affect performance;
-40 fps is a target, not a guarantee on every device. Final seven-second local
+40 fps is a target, not a guarantee on every device. Before the mobile-context
+recovery changes, seven-second local
 Safari compact100 orbit benchmarks measured 89.9 fps outside (95th-percentile
 frame 12 ms) and 89.9 fps inside the 10 m cabin (95th-percentile frame 13 ms),
 with 139,099 density vertices, 144 interactive optical rows, a 1,543×888 CSS
@@ -228,6 +248,22 @@ visually inspected for both density signs. Native history arrows restored each
 candidate's matching geometry/optical hash; a 320 px viewport had no horizontal
 overflow. These are local observations, not a hardware-independent guarantee.
 No website was hosted.
+
+Mobile recovery was subsequently tested locally in desktop Safari with a
+390×664 viewport, forced coarse-pointer detection and device pixel ratio 3.
+Three real `WEBGL_lose_context` loss/restore cycles rebuilt the view, including
+a history selection made while the context was lost. The selected candidate,
+camera and controls survived, and resource counts returned to 61 geometries
+and 13 textures. A settled three-second interval produced zero WebGL frames
+with the illustrative animation enabled. This profile exercises the mobile
+code path; it is not physical iPhone 14 testing or a mobile FPS guarantee.
+Twenty subsequent history switches completed without loss, fallback or growing
+resource counts. A separate compact100 reset retained paused motion and a
+hidden density layer; restored-cache GPU fixtures remained within 0.000270
+in W and 0.001015/m in Hess Φ. The resolved far-ray error was 7.54e-5 rad
+(6.22e-5 rad refined). A tab return resumed refinement, and PNG export produced
+a nonblank scene with buffer preservation disabled. These are local sampled
+regressions, not a proof that Safari will never reset its GPU.
 
 Compact100 GPU readback gave maximum fixture errors of 0.000270 in W and
 0.001015/m in Hess Φ. The exterior-origin 48 m reference differed by 2.67 mm
