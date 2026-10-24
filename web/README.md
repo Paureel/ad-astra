@@ -8,6 +8,8 @@ uses vendored Three.js modules, so use HTTP rather than opening a file URL.
 One full-screen scene contains the geometry, selected energy, and historical
 evaluations. Select a timeline point or use the history slider to inspect its
 saved artifact. The camera and physical color scale stay fixed between entries.
+The timeline starts as a slim bottom strip. Its native disclosure control
+expands the chart on demand and collapses it again, by pointer or keyboard.
 The icon controls select layers, camera views, the density slice, and PNG export.
 Controls expose accessible names, focus states, and tooltips. Arrow keys rotate
 the focused canvas, +/− zoom, and 0 restores the perspective camera. Scroll zoom
@@ -69,8 +71,10 @@ separate callouts and the history controls keep them inspectable. Date labels
 and hours use the browser's local timezone; provenance and CSV retain UTC.
 Axis ticks are thinned for legibility, not for data resolution.
 
-Only fixed-benchmark evaluations are connected. Literature points never create
-an apparent improvement line across different speeds, sizes, or definitions.
+All points are connected chronologically. A dashed, muted connector identifies
+the transition from the original 1c publication to the 2c benchmark; its tooltip
+explains that the different parameters are not an improvement comparison.
+Solid blue connectors compare evaluations of the same fixed benchmark.
 History dates are recorded evaluations, not acceptance or certification dates.
 Numerical error estimates are not certified intervals.
 Previously saved browser artifacts remain readable from IndexedDB. The interface

@@ -572,7 +572,7 @@
     const chart = $("history-chart"),
       w = chart.clientWidth,
       h = chart.clientHeight;
-    if (w < 10) return;
+    if (!$("history-panel").open || w < 10 || h < 10) return;
     chart.setAttribute("viewBox", `0 0 ${w} ${h}`);
     chart.setAttribute("data-x-scale", "log10-elapsed-hours-plus-one");
     chart.setAttribute("data-y-scale", "log10-joules");
@@ -721,21 +721,35 @@
         ),
       );
     }
-    // A literature fixture has different parameters: never draw an improvement
-    // connector from its energy to an entry in the fixed 2c benchmark.
-    const evaluations = points.filter((p) => p.kind !== "publication");
-    if (evaluations.length > 1)
-      chart.append(
-        svg("path", {
-          d: evaluations
-            .map((p, i) => (i ? "L" : "M") + p.x + "," + p.y)
-            .join(" "),
-          fill: "none",
-          stroke: "#8caee8",
-          "stroke-width": 1,
-          opacity: 0.6,
-        }),
+    // Connect the chronology, distinguishing the publication's different
+    // parameters from comparisons within the frozen 2c benchmark.
+    for (let i = 1; i < points.length; i++) {
+      const previous = points[i - 1],
+        point = points[i],
+        differentParameters =
+          previous.kind === "publication" || point.kind === "publication";
+      const connection = svg("path", {
+        d: `M${previous.x},${previous.y}L${point.x},${point.y}`,
+        fill: "none",
+        stroke: differentParameters ? "#b5a18d" : "#9cbeef",
+        "stroke-width": 1.25,
+        "stroke-dasharray": differentParameters ? "4 5" : "none",
+        opacity: 0.8,
+        "data-history-connection": differentParameters
+          ? "different-parameters"
+          : "fixed-benchmark",
+      });
+      connection.append(
+        svg(
+          "title",
+          {},
+          differentParameters
+            ? "Chronology across different parameters: the original 1c publication and the 2c benchmark are not an improvement comparison."
+            : "Chronological evaluations of the same fixed 2c benchmark.",
+        ),
       );
+      chart.append(connection);
+    }
     const occupied = [],
       labelSlots = new Map();
     const priority = [...points].sort(
@@ -1024,6 +1038,10 @@
       );
     }
   }
+  const historyPanel = $("history-panel");
+  historyPanel.addEventListener("toggle", () => {
+    if (historyPanel.open) drawHistory();
+  });
   $("history-scrubber").addEventListener("input", (event) =>
     select(Number(event.target.value)),
   );

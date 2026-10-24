@@ -74,11 +74,14 @@
         </div>
       </header>
       <div class="energy">
-        <div id="candidate-title"></div>
+        <div class="energy-explainer">Energy equivalent of this warp geometry</div>
         <h1 id="energy-value" aria-label="Absolute Eulerian source energy">
           —
         </h1>
-        <div id="energy-change" title="Numerical change from baseline"></div>
+        <div class="energy-meta">
+          <div id="candidate-title"></div>
+          <div id="energy-change" title="Numerical change from baseline"></div>
+        </div>
       </div>
       <div id="equivalence" aria-label="Ideal annihilation energy equivalent">
         <canvas
@@ -254,36 +257,44 @@
       <div class="scale-bar" title="20 metres at the scene origin along x">
         20 m<i></i>
       </div>
-      <div class="timeline">
-        <svg
-          id="history-chart"
-          role="group"
-          aria-label="Logarithmic publication and contributor energy timeline. One-hour time bins, with dates."
-        ></svg>
-        <div class="timeline-controls">
-          <button
-            id="history-prev"
-            type="button"
-            aria-label="Previous evaluation"
-          >
-            ←</button
-          ><input
-            id="history-scrubber"
-            type="range"
-            min="0"
-            max="1"
-            step="1"
-            value="1"
-            aria-label="Scrub saved evaluation history"
-          /><button
-            id="history-next"
-            type="button"
-            aria-label="Next evaluation"
-          >
-            →
-          </button>
+      <details class="timeline" id="history-panel">
+        <summary aria-controls="history-content">
+          Timeline
+          <svg viewBox="0 0 12 12" aria-hidden="true">
+            <path d="m3 4.5 3 3 3-3"></path>
+          </svg>
+        </summary>
+        <div class="timeline-content" id="history-content">
+          <svg
+            id="history-chart"
+            role="group"
+            aria-label="Logarithmic publication and contributor energy timeline. One-hour time bins, with dates."
+          ></svg>
+          <div class="timeline-controls">
+            <button
+              id="history-prev"
+              type="button"
+              aria-label="Previous evaluation"
+            >
+              ←</button
+            ><input
+              id="history-scrubber"
+              type="range"
+              min="0"
+              max="1"
+              step="1"
+              value="1"
+              aria-label="Scrub saved evaluation history"
+            /><button
+              id="history-next"
+              type="button"
+              aria-label="Next evaluation"
+            >
+              →
+            </button>
+          </div>
         </div>
-      </div>
+      </details>
       <footer>
         <span class="evidence"><i></i>Numerical only</span>
         <div>
