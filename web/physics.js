@@ -9,7 +9,7 @@
     positive: [79, 225, 237],
   };
   // One symmetric contrast transform for both signs, candidates and slices.
-  const DENSITY_CONTRAST = 0.01;
+  const DENSITY_CONTRAST = 0.0001;
 
   function densityRGB(value, scale) {
     if (!Number.isFinite(value) || !Number.isFinite(scale) || scale <= 0)

@@ -47,9 +47,12 @@ unknown fields and certification assertions rejected.
 This representation and the redesigned exterior are outside
 `rodal-2c-v1-draft`. That benchmark permits degree-four polynomial shell
 perturbations through 40 m and requires the original infinite exterior tail.
-No benchmark definition, record, timeline score, viewer field or admission rule
-has been changed. The current viewer therefore continues to show its original
-benchmark candidates; it does not render this tensor-spline geometry.
+No original benchmark definition, v1 record or admission rule has been changed.
+The viewer now includes a separate “Paureel · Compact 100 m” timeline entry,
+retaining all past values. It shows the refined numerical estimate and keeps
+the full validation interval in provenance. Its density and stationary-limit
+mesh come from this actual geometry. Cached approximate null-ray optics change
+with the selected metric; see [optical scope](../../docs/VISUALIZATION_OPTICS.md).
 
 ## Reproduce
 
@@ -143,6 +146,6 @@ provenance, not instructions for current contributors.
 Keep new candidates and outputs separate, preserve exact inputs and this
 candidate's receipts, and follow the root contribution workflow. The next
 useful scientific step is an independent review of the continuum arguments
-and a source/curvature tradeoff objective. A viewer integration would need
-its own tensor-spline metric and optical error/performance checks before it
-could replace the current display.
+and a source/curvature tradeoff objective. The viewer's tensor-spline evaluator,
+cache and inside/outside optical diagnostics remain numerical approximations,
+with no rigorous image error bound.

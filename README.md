@@ -1,6 +1,6 @@
 # Ad Astra
 
-![Energy timeline: Rodal’s original 1c publication, the Rodal 2c reference, and Paureel’s contribution. Logarithmic axes; numerical results.](docs/energy-timeline.svg)
+![Energy timeline: Rodal’s 1c publication and 2c reference, Paureel’s v1 contribution and the separate compact100 candidate. Logarithmic axes; numerical results.](docs/energy-timeline.svg)
 
 Collaborative research into lower-energy warp geometries, with a reproducible
 evaluator, scoped Lean proofs, and an interactive 3D visualization.
@@ -13,8 +13,10 @@ benchmark; their different parameters do not establish an improvement.
 
 The separate [compact100 research candidate](research/compact100/README.md)
 replays to **1.54482–1.54531 × 10⁴⁵ J**, at least **63.63% below the Rodal 2c
-reference**, using a broader family and a redesigned 100 m exterior. It is not
-an entry in the unchanged benchmark or the viewer above.
+reference**, using a broader family and a redesigned 100 m exterior. The viewer
+shows its **1.5448691 × 10⁴⁵ J** numerical estimate as “Paureel · Compact 100 m,”
+with the interval in provenance. History arrows switch the actual geometry and
+optics together. This is a separate scenario, not a v1 benchmark record.
 
 ## Run locally
 

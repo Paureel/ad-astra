@@ -1,9 +1,10 @@
 # Selected-metric display and optical approximation
 
-WP-008 visualization work, starting revision
-`223c128bd44ee003bc309c1f724cb346b2123a73`. Scope: `web/`, derived display
-asset generators, viewer checks and documentation. The evaluator, benchmark,
-energy receipts, history and formal refusal gate are unchanged.
+WP-008 visualization work; compact100 integration starts at revision
+`9780771dc2058856b6a5257748e0866dfefd4df0`. Scope: `web/`, derived display
+generators, timeline, viewer checks and documentation. The original evaluator,
+benchmark, scientific energy receipts, past values and formal refusal gate
+are preserved. A separately labelled compact100 history entry is added.
 
 ## Geometry and quantities
 
@@ -30,21 +31,64 @@ before decimal serialization; interpolated segments have no rigorous bound.
 
 The 3D density cloud uses direct Python metric evaluations on radial samples
 0–40 m at 0.5 m spacing, refined to 0.125 m at 17–23 m, with 49 polar angles.
-Each point revolves into 12 staggered azimuth samples by the family's
-axisymmetry. Coordinates are rounded to 1e-7 m and normalized densities to eight
+Each point revolves by axisymmetry with circumference-aware sampling: target
+6 m spacing, 12–64 azimuths off-axis and one on-axis. A fixed count undersampled
+the wider outer negative region. Coordinates are rounded to 1e-7 m for v1
+and 1e-10 m for compact100; normalized densities retain eight
 significant digits. Signed colors retain the common baseline endpoints and symmetric asinh contrast;
 opacity is a display aid. The color transform is
-`asinh(min(1, |ρ|/scale)/0.01) / asinh(100)` for both signs. The negative
-peak is only about 6% of the positive scale; this fixed symmetric transform makes
-it visible without changing values or using separate sign normalizations.
-The legend is generated with this same transform. Negative point glyphs use
-2.1× the diameter and 1.8× the opacity (capped at 0.85), drawn after the
-translucent positive cloud with depth testing retained. This is an explicit
-visibility emphasis, not additional negative energy or a magnitude encoding. The 2D slice retains the original grid interpolation.
+`asinh(min(1, |ρ|/scale)/0.0001) / asinh(10000)` for both signs. The fixed symmetric
+transform exposes weak regions without changing values or using separate sign
+normalizations. The legend uses that same transform. Both signs have identical
+2.5–3.5 pixel glyphs (before device-pixel scaling), 0.6 peak opacity and depth
+testing. There are no red outlines, halos or sign-specific boosts. Magnitude is
+encoded by color; opacity is a shared display style. The 2D slice retains grid interpolation.
 Unknown older browser artifacts retain their supplied density grid and cabin
 reference, with no substituted baseline stationary-limit surface.
 
 ## Backward null rays
+
+### Compact100 model
+
+The separate research geometry is evaluated from the submitted degree-six
+tensor B-spline and the exact original core/cutoff in
+`research/compact100/geometry.py`. Its stationary limit spans approximately
+12.36–55.63 m in sampled radial directions; **100 m is its flat-exterior radius**,
+not a spherical hull or stationary limit. Direct density samples cover 0–100 m,
+with refined inner-wall sampling. The initial view frames this wider region.
+
+`web/compact-metric.js` independently evaluates the numerical spline and its
+derivatives. CPU checks agree with Python fields to about 1e-14. For fast GPU
+optics, a hash-checked 1025×513 cache stores six regular Cartesian dyad
+coefficients of W and Hess Φ in two Float32 RGBA textures. Coordinates are
+`t=cbrt((r−11)/89)` and `s=acos(−μ)/π`, resolving the inner wall and both poles.
+The core/cutoff and the exactly flat exterior use analytic fields. Cached W
+and Hess Φ are interpolated independently; they approximate the underlying
+metric's derivatives, not a new energy evaluator. The same Killing-drift mask
+rejects unresolved rays. No rigorous global interpolation bound is claimed.
+
+The generator's 8,192 off-grid samples, including the axis and inner wall,
+had maximum component errors below 0.000965 in W and 0.001/m in Hess Φ.
+Independent CPU cache fixtures give about 0.000246 and 0.000996/m; the refined
+cached far-ray source direction differs from raw-momentum DOP853 by about
+6.24e-5 rad. A separate camera-inside 48 m integration agrees with exact-spline
+RK4 to about 1.52e-7 m and 4.65e-9 rad. These are sampled diagnostics.
+
+Compact100 interactive steps use
+`0.5 × 0.25 × clamp(0.15×(abs(r−18)−7), 0.12, 8192)` with a 640-step budget.
+Stationary refinement halves those steps with a 1,280-step budget. Historical
+v1 metrics retain their analytic evaluator and original step rules. Each
+selection synchronously changes the field mesh, stationary limit, metric
+uniforms and cache mode; angular refinement is invalidated. Arrows back to v1
+turn compact sampling off. There is no asynchronous late-result swap.
+
+The main number and timeline show the refined numerical **1.5448691e45 J**
+estimate. The separately replayed continuum interval remains in provenance.
+Both axes stay logarithmic; time uses reverse `log10(1 + hours before latest)`
+in UTC one-hour bins, with date labels. Recent submissions expand on the right;
+identical hourly bins stay identical. Cross-scenario connectors are dashed.
+
+### Integration equations
 
 For a future-directed photon with Eulerian direction `n = p/ω`, unit `|n|`,
 `ω = -p0 + W·p`, the Hamilton equations give `dq/du = n-W` and `dp/du = Kᵀp`.
@@ -159,13 +203,13 @@ The display generator hash binds its fixtures; candidate/evaluator hashes bind
 the mesh to existing artifacts. Passing these tests does not certify the metric
 or close any formal research obligation.
 
-Measured CPU maximum errors on the bundled candidates: W ~1.1e-14, K ~8.0e-15/m,
-normalized density ~2.4e-8 after coordinate rounding. Three sampled directions
+Measured CPU maximum errors on all three bundled candidates: W ~1.1e-14, K ~8.0e-15/m,
+normalized density ~4.5e-8 after coordinate rounding. Three sampled directions
 per candidate changed by at most 5.0e-5 rad under half steps, and 4.1e-5 rad when
 the exit radius doubled. Different step crossings contribute to these figures;
 they are sampled comparisons, not rigorous bounds.
 
-Local Safari GPU readback: max shift error 4.15e-7, Hessian error 2.15e-7/m;
+Earlier v1-only Safari GPU readback: max shift error 4.15e-7, Hessian error 2.15e-7/m;
 RK4 at 0.2 m steps differs from Python DOP853 by 0.254 mm and 1.06e-6 rad after
 48 m. For the sensitive selected-candidate far ray below, GPU interactive
 source direction differs from the independent Hamiltonian reference by 1.18e-4
@@ -175,11 +219,24 @@ during normal use.
 `AdAstraDiagnostics.audit()` and `.benchmark({orbit:true,duration_ms:6000})`
 allow local inspection without exposing labels in the experience. Hardware,
 viewport, browser, critical directions and background load affect performance;
-40 fps is a target, not a guarantee on every device. Final six-second local
-Safari orbit benchmarks measured 89.9 fps outside (95th-percentile frame 12 ms)
-and 57.8 fps inside the 10 m cabin (95th-percentile frame 18 ms), at roughly
-1,530×810 CSS pixels and device pixel ratio 1. These are local observations,
-not a hardware-independent guarantee. No website was hosted.
+40 fps is a target, not a guarantee on every device. Final seven-second local
+Safari compact100 orbit benchmarks measured 89.9 fps outside (95th-percentile
+frame 12 ms) and 89.9 fps inside the 10 m cabin (95th-percentile frame 13 ms),
+with 139,099 density vertices, 144 interactive optical rows, a 1,543×888 CSS
+viewport and device pixel ratio 1. The perspective, XY and YZ views were
+visually inspected for both density signs. Native history arrows restored each
+candidate's matching geometry/optical hash; a 320 px viewport had no horizontal
+overflow. These are local observations, not a hardware-independent guarantee.
+No website was hosted.
+
+Compact100 GPU readback gave maximum fixture errors of 0.000270 in W and
+0.001015/m in Hess Φ. The exterior-origin 48 m reference differed by 2.67 mm
+and 3.29e-5 rad; its resolved interactive far-ray direction differed from
+independent Hamiltonian integration by 7.54e-5 rad. The cabin-origin 48 m
+reference differed by 1.02 mm and 1.51e-6 rad. That cabin ray did not pass the
+interactive far-boundary acceptance mask, so it contributes no background
+source light. Diagnostics report unresolved directions explicitly instead of
+presenting their unfinished direction as a source. These are sampled checks.
 
 ## Saturn distortion audit and correction
 

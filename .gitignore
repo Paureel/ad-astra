@@ -23,6 +23,7 @@ dist/
 results/local/
 results/ci-*
 research/local/
+web/.local-*
 *.log
 *.zip
 *.tar

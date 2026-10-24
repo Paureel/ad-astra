@@ -79,7 +79,8 @@ for (const solution of solutions.solutions) {
   assert.ok(farRef.null_residual < 1e-9);
   const ref = solution.optical_reference;
   let state = [...ref.origin, ...ref.view.map((v) => -v), 0];
-  for (let i = 0; i < 240; i++) state = step(metric, state, 0.2);
+  const fixedStep=metric.family==="compact100"?.1:.2;
+  for (let i = 0; i < Math.round(48/fixedStep); i++) state = step(metric, state, fixedStep);
   assert.ok(
     Math.hypot(...state.slice(0, 3).map((x, i) => x - ref.state[i])) < 1e-6,
     "RK4 vs independent Python DOP853 position.",
@@ -93,7 +94,8 @@ for (const solution of solutions.solutions) {
     const norm = Math.hypot(...view);
     view = view.map((x) => x / norm);
     const coarse = trace(metric, ref.origin, view),
-      fine = trace(metric, ref.origin, view, { steps: 640, stepScale: 0.5 }),
+      fine = trace(metric, ref.origin, view, { steps: metric.family==="compact100"?1280:640,
+        stepScale: metric.family==="compact100"?.25:.5 }),
       far = trace(metric, ref.origin, view, { boundary: 131072 });
     assert.ok(
       coarse.resolved && fine.resolved && far.resolved,

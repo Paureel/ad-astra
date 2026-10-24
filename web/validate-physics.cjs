@@ -7,6 +7,7 @@ const {
   createRaySampler,
   densityRGB,
   DENSITY_COLORS,
+  DENSITY_CONTRAST,
 } = require("./physics.js");
 const pairEnergy = 2 * EARTH_MASS_KG * C_M_S ** 2;
 assert.deepEqual(densityRGB(0, 10), DENSITY_COLORS.zero);
@@ -14,7 +15,7 @@ assert.deepEqual(densityRGB(-10, 10), DENSITY_COLORS.negative);
 assert.deepEqual(densityRGB(10, 10), DENSITY_COLORS.positive);
 assert.deepEqual(densityRGB(1e99, 10), DENSITY_COLORS.positive);
 // The shared symmetric asinh mapping reveals a negative peak at 6% of scale.
-const contrast = Math.asinh(6) / Math.asinh(100);
+const contrast = Math.asinh(.06/DENSITY_CONTRAST) / Math.asinh(1/DENSITY_CONTRAST);
 const negative = densityRGB(-0.6, 10),
   positive = densityRGB(0.6, 10);
 assert.ok(negative[0] > 120 && negative[0] > negative[2]);

@@ -45,6 +45,9 @@ verify-formal:
 	$(PYTHON) -m warpproof verify --require-formal
 
 display-data:
+	$(PYTHON) scripts/build_compact_viewer.py
+	$(PYTHON) scripts/build_viewer_history.py
+	node scripts/build-timeline.mjs
 	$(PYTHON) scripts/build_optics.py
 	$(PYTHON) scripts/build_sky.py --catalogue web/stars.json
 

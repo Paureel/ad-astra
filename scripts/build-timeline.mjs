@@ -20,6 +20,7 @@ const records = (manifest.publications || []).map((p) => ({
   kind: "publication",
   digits: p.significant_digits,
   context: `${p.parameters.speed_c}c publication`,
+  benchmark_id:p.id,
 }));
 for (const row of manifest.evaluations) {
   const bytes = await readFile(new URL(row.report_path, root));
@@ -39,8 +40,10 @@ for (const row of manifest.evaluations) {
     timestamp: report.provenance.created_utc,
     energy_J: report.energy.value_J,
     kind: row.kind,
-    digits: 10,
-    context: `${report.benchmark.speed_c}c${row.kind === "benchmark_reference" ? " reference" : ""}`,
+    digits: report.energy.significant_digits||10,
+    benchmark_id:report.benchmark.id,
+    upper_bound:report.energy.value_kind==="upper_bound",
+    context: report.benchmark.scenario_label || `${report.benchmark.speed_c}c${row.kind === "benchmark_reference" ? " reference" : ""}`,
   });
 }
 records.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
@@ -76,7 +79,7 @@ for (const tick of projection.yTicks) {
 parts.push(`<path d="M${box.left},${box.top}V${bottom}H${end}" class="axis"/>`);
 const ticks = [
   { x: box.left, timestamp: projection.origin },
-  { x: end, timestamp: projection.origin + (projection.maxHour - 1) * 3600000 },
+  { x: end, timestamp: projection.latest },
 ];
 for (const tick of projection.xTicks)
   if (!ticks.some((t) => Math.abs(t.x - tick.x) < 118)) ticks.push(tick);
@@ -89,7 +92,7 @@ for (const tick of ticks.sort((a, b) => a.x - b.x)) {
 }
 for (let i = 1; i < projection.points.length; i++) {
   const a = projection.points[i - 1], b = projection.points[i];
-  const different = a.kind === "publication" || b.kind === "publication";
+  const different = a.benchmark_id !== b.benchmark_id;
   parts.push(`<path d="M${a.x},${a.y}L${b.x},${b.y}" class="${different ? "literature-link" : "evaluation-link"}"><title>${different ? "Chronology across different parameters, not an improvement comparison" : "Same fixed benchmark"}</title></path>`);
 }
 const occupied = [];
@@ -111,7 +114,7 @@ for (const point of [...projection.points].reverse()) {
   parts.push(`<g><title>${xml(`${point.author} · ${point.context} · ${science(point.energy_J, point.digits)} J · ${point.timestamp}`)}</title>`);
   if (labelY !== undefined) {
     parts.push(`<path d="M${point.x},${point.y}L${x},${labelY + 4}" class="leader"/>`);
-    text(x, labelY, `${science(point.energy_J, point.digits)} J`, `text-anchor="${anchor}" class="energy"`);
+    text(x, labelY, `${point.upper_bound?"≤ ":""}${science(point.energy_J, point.digits)} J`, `text-anchor="${anchor}" class="energy"`);
     text(x, labelY + 18, `${point.author} · ${point.context}`, `text-anchor="${anchor}" class="author"`);
   }
   parts.push(`<circle cx="${point.x}" cy="${point.y}" r="5" fill="${publication ? "#0b1426" : color}" stroke="${color}" stroke-width="1.5"/></g>`);
@@ -119,7 +122,7 @@ for (const point of [...projection.points].reverse()) {
 text(box.left, height - 19, "Dates use UTC; the original publication reports a day, not an hour.", 'class="meta"');
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title description">
 <title id="title">Ad Astra energy timeline</title>
-<desc id="description">Publication and contributor energy values on logarithmic axes. Time uses log10(1 + elapsed UTC hours), in one-hour bins. A dashed line distinguishes the original 1c publication from the fixed 2c benchmark. All results are numerical, not certified.</desc>
+<desc id="description">Publication and contributor energy values on logarithmic axes. Time uses reverse log10(1 + UTC hours before the latest entry), in one-hour bins, expanding recent submissions. Dashed lines distinguish different parameters and the separate compact100 scenario. All results are numerical, not formally certified.</desc>
 <metadata>${xml(JSON.stringify({ license: "Apache-2.0", generator: "scripts/build-timeline.mjs", inputs, records }))}</metadata>
 <style>text{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;fill:#b6c6e1}.heading{font-family:system-ui,sans-serif;font-size:15px;fill:#e3edff}.meta{font-size:10px;fill:#94a9cd}.tick{font-size:10px}.hour{font-size:9px;fill:#91a6cb}.energy{font-size:13px;fill:#e4eeff}.author{font-size:11px;fill:#aabddc}.grid{stroke:#708bb0;stroke-opacity:.16;stroke-dasharray:2 6;fill:none}.axis{stroke:#657fa5;stroke-opacity:.65;fill:none}.literature-link{stroke:#c3ac90;stroke-width:1.5;stroke-dasharray:5 6;fill:none}.evaluation-link{stroke:#9cbeef;stroke-width:1.5;fill:none}.leader{stroke:#829dc3;stroke-opacity:.5;fill:none}</style>
 <rect width="${width}" height="${height}" rx="12" fill="#0b1426"/>

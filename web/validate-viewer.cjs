@@ -5,6 +5,7 @@ const {
   sampleSlice,
   labPosition,
   assertCompatible,
+  assertBundledEntry,
   entryKey,
 } = require("./app.js");
 const fs = require("node:fs");
@@ -102,10 +103,10 @@ for (const name of ["default-result.js", "history.js"])
   );
 const baseline = JSON.parse(JSON.stringify(bundle.window.WARP_DEFAULT_RESULT));
 const history = JSON.parse(JSON.stringify(bundle.window.WARP_BUNDLED_HISTORY));
-assert.equal(history.length, 2);
+assert.equal(history.length, 3);
 assert.deepEqual(
   history.map((e) => e.title),
-  ["Rodal", "Paureel"],
+  ["Rodal", "Paureel", "Paureel"],
 );
 const publication = bundle.window.WARP_PUBLICATIONS[0];
 assert.equal(publication.author, "Rodal");
@@ -113,17 +114,24 @@ assert.equal(publication.energy_J, 2.66e44);
 assert.equal(publication.significant_digits, 3);
 assert.equal(publication.date_precision, "day");
 assert.equal(publication.parameters.speed_c, 1);
-for (const entry of history) assertCompatible(entry.artifact, baseline);
+for (const entry of history) assertBundledEntry(entry, baseline);
+assert.throws(()=>assertCompatible(history[2].artifact,baseline),/benchmark or version/);
+assert.equal(history[2].artifact.benchmark.scenario_label,"Compact 100 m");
+assert.equal(history[2].artifact.geometry.extent_m,100);
+assert.equal(history[2].artifact.energy.value_kind,"estimate");
+assert.ok(history[2].artifact.energy.value_J<history[1].artifact.energy.value_J);
+const badScenario=structuredClone(history[2]);badScenario.artifact.geometry.cabin_radius_m=1;
+assert.throws(()=>assertBundledEntry(badScenario,baseline),/reference geometry/);
 assert.ok(
   history[0].artifact.energy.value_J > history[1].artifact.energy.value_J,
 );
 assert.notEqual(entryKey(history[0]), entryKey(history[1]));
-// Equal decades must occupy equal distances on BOTH axes, after hour binning.
+// Equal age decades occupy equal distances; recent events expand at the right.
 const start = Date.parse("2025-12-17T00:00:00Z");
 const plot = logTimeline(
   [
     { timestamp: new Date(start).toISOString(), energy_J: 1e44 },
-    { timestamp: new Date(start + 9 * HOUR_MS).toISOString(), energy_J: 1e45 },
+    { timestamp: new Date(start + 90 * HOUR_MS).toISOString(), energy_J: 1e45 },
     { timestamp: new Date(start + 99 * HOUR_MS).toISOString(), energy_J: 1e46 },
   ],
   { left: 0, top: 0, width: 400, height: 200 },

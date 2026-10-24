@@ -43,6 +43,13 @@
       "kind": "repository_evaluation",
       "report_path": "results/search-example.json",
       "viewer_path": "results/search-example-viewer.json"
+    },
+    {
+      "id": "paureel-compact100",
+      "author": {"name":"Paureel","source":"User-supplied compact100 candidate; exact source identity and locally replayed continuum bounds"},
+      "kind":"research_scenario",
+      "report_path":"results/compact100-display-report.json",
+      "viewer_path":"results/compact100-viewer.json"
     }
   ]
 }

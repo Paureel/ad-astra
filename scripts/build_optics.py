@@ -19,7 +19,7 @@ from warpproof.reporting import source_hash
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def far_optical_reference(geometry):
+def far_optical_reference(geometry, *, rtol=2e-11, atol=1e-12, max_step=.25):
     """Independent raw-momentum Hamilton equations for a sensitive off-axis ray."""
     origin = np.array([-220., 0., 0.])
     view = np.array([.9022466247443952, -.3715129547666677, .21892727691607194])
@@ -38,11 +38,11 @@ def far_optical_reference(geometry):
         event.direction = 1
         return event
     near = solve_ivp(rhs, (0,10000), np.concatenate((origin,n)), method="DOP853",
-                     rtol=2e-11, atol=1e-12, max_step=.25, events=stop_at(256))
+                     rtol=rtol, atol=atol, max_step=max_step, events=stop_at(256))
     if not near.success or not len(near.t_events[0]):
         raise ValueError("Near-field Hamiltonian optical audit failed.")
     far = solve_ivp(rhs, (near.t[-1],200000), near.y[:,-1], method="DOP853",
-                    rtol=2e-11, atol=1e-12, max_step=4096, events=stop_at(65536))
+                    rtol=rtol, atol=atol, max_step=4096, events=stop_at(65536))
     if not far.success or not len(far.t_events[0]):
         raise ValueError("Finite-boundary Hamiltonian optical audit failed.")
     q,p = far.y[:3,-1],far.y[3:,-1]
@@ -51,12 +51,14 @@ def far_optical_reference(geometry):
             "boundary_m":65536,"ct_m":float(far.t[-1]),
             "null_residual":float(abs(p@p-omega**2)/(p@p+omega**2)),
             "method":"DOP853 raw covariant momentum, fixed p0, exact boundary event",
-            "rtol":2e-11,"atol":1e-12,"near_max_step_ct_m":.25,"far_max_step_ct_m":4096}
+            "rtol":rtol,"atol":atol,"near_max_step_ct_m":max_step,"far_max_step_ct_m":4096}
 
 
-def build(candidate_path):
-    candidate = load_candidate(ROOT / candidate_path)
-    geometry = Geometry(candidate)
+def build(candidate_path=None, *, geometry=None, identity=None, radial=None, optical_precision=None, coordinate_digits=7):
+    if geometry is None:
+        candidate = load_candidate(ROOT / candidate_path)
+        geometry = Geometry(candidate)
+        identity = (candidate.id, candidate.parameter_hash, source_hash())
     theta = np.linspace(0, np.pi, 129)
     directions = np.stack((np.cos(theta), np.sin(theta), np.zeros_like(theta)), axis=-1)
     low, high = np.zeros(len(theta)), np.full(len(theta), 128.)
@@ -74,16 +76,18 @@ def build(candidate_path):
     sign = np.linalg.norm(geometry.fields(scan)[1], axis=-1) >= 1
     if not np.all(np.count_nonzero(sign[:, 1:] != sign[:, :-1], axis=1) == 1):
         raise ValueError("Stationary-limit surface has multiple/unresolved sampled branches; use a general contour mesh.")
-    radial = np.unique(np.concatenate((np.linspace(0, 40, 81), np.linspace(17, 23, 49))))
+    if radial is None:
+        radial = np.unique(np.concatenate((np.linspace(0, 40, 81), np.linspace(17, 23, 49))))
     angle = np.linspace(0, np.pi, 49)
     rr, aa = np.meshgrid(radial, angle, indexing="ij")
     points = np.stack((rr*np.cos(aa), rr*np.sin(aa), np.zeros_like(rr)), axis=-1)
     rho = geometry.density(points)
     default = json.loads((ROOT / "web/default-result.js").read_text().removeprefix("window.WARP_DEFAULT_RESULT = ").strip().removesuffix(";"))
     scale = default["display"]["rho_scale_abs_J_m3"]
-    cloud = [[round(float(x), 7), round(float(y), 7), float(f"{value/scale:.8g}")]
+    cloud = [[round(float(x), coordinate_digits), round(float(y), coordinate_digits), float(f"{value/scale:.8g}")]
              for (x, y, _), value in zip(points.reshape(-1, 3), rho.ravel()) if abs(value/scale) >= .00005]
     audit_points = np.array([[0,0,0],[.0001,.0002,-.0001],[9.9,.1,0],[10.1,0,0],
+                             [10.5,.1,0],[11,0,0],[12.2,1,.5],[13.34,0,0],[-13.65,0,0],[-12,5,2],
                              [19.9,0,0],[20,0,0],[20.1,.4,.2],[0,20,0],[-17,9,7],
                              [21,12,-8],[31,-4,16],[39.9,0,.1],[40.1,2,0],[120,-40,50],[1024,0,0]], dtype=float)
     _, W, K = geometry.fields(audit_points)
@@ -103,17 +107,17 @@ def build(candidate_path):
     if not solution.success:
         raise ValueError("Independent optical reference integration failed.")
     return {
-        "candidate_id":candidate.id,"parameter_hash":candidate.parameter_hash,
-        "evaluator_source_sha256":source_hash(),
+        "candidate_id":identity[0],"parameter_hash":identity[1],
+        "evaluator_source_sha256":identity[2],
         "surface_quantity":"norm(grad(Phi)) = 1; g_00 = 0 stationary limit, not an event horizon",
         "surface_meridian":np.round(surface[:,:2],10).tolist(),
         "surface_max_sample_residual":float(residual),
         "density_scale_J_m3":scale,"density_meridian":cloud,
-        "density_sampling":"Direct Python fields on an adaptive radial/angle grid; 12 azimuth samples per meridional point in the viewer",
+        "density_sampling":"Direct Python fields on a refined radial/angle grid; circumference-aware azimuth samples in the viewer (target 6m spacing, 12-64 off-axis, one on-axis), identical for both signs",
         "field_audit":fixtures,
         "optical_reference":{"origin":origin.tolist(),"view":view.tolist(),"past_ct_m":48,
                              "state":solution.y[:,-1].tolist(),"method":"DOP853", "rtol":2e-11,"atol":1e-12},
-        "optical_far_reference":far_optical_reference(geometry),
+        "optical_far_reference":far_optical_reference(geometry, **(optical_precision or {})),
     }
 
 
@@ -122,6 +126,10 @@ def main():
     paths = {sha256(p.read_bytes()).hexdigest(): p for p in sorted((ROOT / "candidates").glob("*.json"))}
     rows = []
     for entry in manifest["evaluations"]:
+        if entry["kind"] == "research_scenario":
+            from build_compact_viewer import build_solution
+            rows.append(build_solution())
+            continue
         report = json.loads((ROOT / entry["report_path"]).read_text())
         path = paths.get(report["provenance"]["candidate_file_sha256"])
         if path is None:

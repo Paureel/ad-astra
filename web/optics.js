@@ -9,6 +9,7 @@ uniform vec3 observer;uniform mat3 orientation;uniform float aspect;uniform floa
 uniform float boundary;uniform int budget;uniform float fixedCt;uniform float fixedStep;uniform float stepScale;
 uniform int auditMode;uniform vec3 auditPoint;
 uniform vec2 mapOffset;uniform vec2 mapScale;
+uniform float stepCenter;uniform float stepWidth;
 ${window.AdAstraMetric.GLSL}
 void main(){
  if(auditMode>0&&auditMode<5){Metric M=metricFields(auditPoint);if(auditMode==1)gl_FragColor=vec4(M.W,1.);else gl_FragColor=vec4(M.K[auditMode-2],1.);return;}
@@ -18,7 +19,7 @@ void main(){
  float initialP0=dot(metricFields(q).W,n)-1.;
  for(int i=0;i<2048;i++){
   if(i>=budget||length(q)>=boundary||(fixedCt>0.&&ct>=fixedCt-0.00001))break;
-  float h=fixedStep>0.?fixedStep:stepScale*clamp((abs(length(q)-profileR)-4.)*.15,.12,8192.);
+  float h=fixedStep>0.?fixedStep:stepScale*(modelKind==1?.25:1.)*clamp((abs(length(q)-stepCenter)-stepWidth)*.15,.12,8192.);
   if(fixedCt>0.)h=min(h,fixedCt-ct);
   opticalStep(q,n,ell,h);ct+=h;
  }
@@ -54,8 +55,24 @@ function plane(material) {
   return scene;
 }
 
+export async function loadCompactCache() {
+  const entry=(window.WARP_BUNDLED_HISTORY||[]).find(e=>e.artifact.candidate.parameters.family==="compact100");
+  if(!entry)return null;
+  const meta=entry.artifact.provenance.optical_cache;
+  if(meta.path!=="compact100-fields.bin" || meta.radial_nodes!==1025 || meta.angular_nodes!==513)
+    throw new Error("Unsupported compact optical cache.");
+  const response=await fetch(meta.path);
+  if(!response.ok)throw new Error("Compact optical cache could not be loaded.");
+  const bytes=await response.arrayBuffer();
+  if(bytes.byteLength!==meta.radial_nodes*meta.angular_nodes*32)throw new Error("Incomplete compact optical cache.");
+  const hash=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)),v=>v.toString(16).padStart(2,"0")).join("");
+  if(hash!==meta.sha256)throw new Error("Compact optical cache hash differs from its geometry.");
+  const data=new Float32Array(bytes),half=data.length/2;
+  return {a:data.subarray(0,half),b:data.subarray(half),nr:meta.radial_nodes,nm:meta.angular_nodes,hash};
+}
+
 export class StellarOptics {
-  constructor(renderer, invalidate) {
+  constructor(renderer, invalidate, compactCache = null) {
     this.renderer = renderer;
     this.invalidate = invalidate;
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -73,6 +90,12 @@ export class StellarOptics {
     this.floatLinear = !!renderer
       .getContext()
       .getExtension("OES_texture_float_linear");
+    this.compactCache=compactCache;
+    this.compactTextures=[compactCache?.a,compactCache?.b].map(data=>{
+      const texture=new THREE.DataTexture(data||new Float32Array(4),compactCache?.nr||1,compactCache?.nm||1,THREE.RGBAFormat,THREE.FloatType);
+      texture.minFilter=texture.magFilter=this.floatLinear?THREE.LinearFilter:THREE.NearestFilter;
+      texture.needsUpdate=true;return texture;
+    });
     this.traceMaterial = new THREE.ShaderMaterial({
       vertexShader: VERTEX,
       fragmentShader: TRACE,
@@ -86,6 +109,9 @@ export class StellarOptics {
         tangent: { value: 1 },
         beta: { value: 2 },
         profileR: { value: 20 },
+        stepCenter:{value:20}, stepWidth:{value:4},
+        modelKind:{value:0},compactA:{value:this.compactTextures[0]},compactB:{value:this.compactTextures[1]},
+        compactSize:{value:new THREE.Vector2(compactCache?.nr||1,compactCache?.nm||1)},compactLinear:{value:this.floatLinear},
         sigma: { value: 1 },
         termCount: { value: 0 },
         terms: { value: Array.from({ length: 9 }, () => new THREE.Vector3()) },
@@ -140,12 +166,21 @@ export class StellarOptics {
     );
     const u = this.traceMaterial.uniforms,
       m = this.metric;
+    if(m.family==="compact100" && this.compactCache?.hash!==artifact.provenance.optical_cache.sha256)
+      throw new Error("The selected compact geometry and optical cache differ.");
+    this.parameterHash=artifact.candidate.parameter_hash;
+    u.modelKind.value=m.family==="compact100"?1:0;
+    u.stepCenter.value=m.stepCenter;
+    u.stepWidth.value=m.stepWidth;
     u.beta.value = m.beta;
     u.profileR.value = m.R;
     u.sigma.value = m.sigma;
     u.termCount.value = m.terms.length;
     m.terms.forEach((term, i) => u.terms.value[i].set(...term));
     this.dirty = true;
+    this.refined = false;
+    this.refineIndex = 0;
+    clearTimeout(this.refineTimer);
   }
   setEnabled(value) {
     this.enabled = value;
@@ -231,6 +266,9 @@ export class StellarOptics {
   diagnostics() {
     return {
       available: this.available,
+      family:this.metric?.family,
+      parameter_hash:this.parameterHash,
+      cache_sha256:this.metric?.family==="compact100"?this.compactCache?.hash:null,
       lensed: this.enabled,
       width: this.refined ? this.fineTarget.width : this.target.width,
       height: this.refined ? this.fineTarget.height : this.target.height,
@@ -287,8 +325,8 @@ export class StellarOptics {
     u.observer.value.set(...reference.origin);
     u.orientation.value.setFromMatrix4(basis);
     u.fixedCt.value = reference.past_ct_m;
-    u.fixedStep.value = 0.2;
-    u.budget.value = 640;
+    u.fixedStep.value = this.metric.family==="compact100"?.05:.2;
+    u.budget.value = Math.ceil(reference.past_ct_m/u.fixedStep.value)+1;
     u.auditMode.value = 5;
     const q = read();
     u.auditMode.value = 6;
@@ -302,6 +340,7 @@ export class StellarOptics {
     u.auditMode.value = 0;
     u.fixedCt.value = 0;
     u.fixedStep.value = 0;
+    u.budget.value = 640;
     if (selectedRay) {
       const forward = new THREE.Vector3(...selectedRay.view).normalize(),
         right = new THREE.Vector3()
@@ -313,6 +352,10 @@ export class StellarOptics {
         new THREE.Matrix4().makeBasis(right, up, forward.clone().negate()),
       );
     }
+    // Use the production acceptance mask before comparing a source direction.
+    // A budget-limited or unstable ray has no displayed background direction.
+    u.auditMode.value = 0;
+    const adaptive_resolved = read()[3] > 0.5;
     u.auditMode.value = 6;
     const adaptive = read();
     const ray = selectedRay || reference;
@@ -320,9 +363,9 @@ export class StellarOptics {
       steps: 2560,
       stepScale: 0.25,
     });
-    const adaptive_direction_error_rad = Math.hypot(
+    const adaptive_direction_error_rad = adaptive_resolved && cpu.resolved ? Math.hypot(
       ...adaptive.slice(0, 3).map((v, i) => v - cpu.state[i + 3]),
-    );
+    ) : null;
     let refined_hamilton_source_error_rad = null;
     if (selectedRay?.source_direction) {
       u.stepScale.value = 0.25;
@@ -341,12 +384,17 @@ export class StellarOptics {
     target.dispose();
     this.dirty = true;
     return {
+      gpu_source_direction:adaptive_resolved ? adaptive.slice(0,3).map(v=>-v) : null,
+      adaptive_resolved,
+      cpu_resolved:cpu.resolved,
+      family:this.metric.family,
+      parameter_hash:this.parameterHash,
       max_shift_abs_error: maxW,
       max_hessian_abs_error_per_m: maxK,
       position_error_m,
       direction_error_rad,
       adaptive_direction_error_rad,
-      hamilton_source_error_rad: selectedRay?.source_direction
+      hamilton_source_error_rad: adaptive_resolved && selectedRay?.source_direction
         ? Math.hypot(
             ...adaptive
               .slice(0, 3)

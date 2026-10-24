@@ -8,6 +8,11 @@
     return a / b;
   };
   function createMetric(parameters) {
+    if (parameters.family === "compact100") {
+      const compact = typeof module !== "undefined" && module.exports ? require("./compact-metric.js") : window.AdAstraCompact;
+      return compact.createMetric(parameters, createMetric({speed_c:2,R_m:20,sigma_per_m:1,coefficients:[]}));
+    }
+    if (parameters.family) throw new Error("Unsupported display metric family.");
     const beta = Number(parameters.speed_c),
       R = Number(parameters.R_m),
       sigma = Number(parameters.sigma_per_m);
@@ -77,6 +82,7 @@
                 (gp / safe) * ((i === j ? 1 : 0) - n[i] * n[j])))
         );
       });
+      let Phi=beta*x*g;
       if (r > 10 && r < 40 && terms.length) {
         const u = x / R,
           w = (y * y + z * z) / (R * R),
@@ -103,6 +109,7 @@
           V = [0, (2 * y) / (R * R), (2 * z) / (R * R)],
           S = q.map((v) => (2 * v) / 1500);
         const dP = U.map((v, i) => Pu * v + Pw * V[i]);
+        Phi += beta*R*B*P;
         for (let i = 0; i < 3; i++) {
           W[i] += beta * R * (B * dP[i] + P * Bs * S[i]);
           for (let j = 0; j < 3; j++) {
@@ -120,9 +127,10 @@
           }
         }
       }
-      return { W, K };
+      // Compact100 core uses the reference potential itself for the product rule.
+      return { W, K, Phi };
     }
-    return { beta, R, sigma, terms, fields };
+    return { family:"frozen-v1", beta, R, sigma, terms, fields, stepCenter:R, stepWidth:4 };
   }
   function rhs(metric, state) {
     const q = state.slice(0, 3),
@@ -155,7 +163,8 @@
     metric,
     origin,
     view,
-    { steps = 320, stepScale = 1, boundary = 65536 } = {},
+    { steps = metric.family==="compact100"?640:320,
+      stepScale = metric.family==="compact100"?.5:1, boundary = 65536 } = {},
   ) {
     let state = [...origin, ...view.map((v) => -v), 0];
     let ct = 0;
@@ -163,8 +172,8 @@
       const r = Math.hypot(...state.slice(0, 3));
       if (r >= boundary) return { state, ct, resolved: true, steps: i };
       const h =
-        stepScale *
-        Math.min(8192, Math.max(0.12, (Math.abs(r - metric.R) - 4) * 0.15));
+        stepScale * (metric.stepFactor ?? 1) *
+        Math.min(8192, Math.max(0.12, (Math.abs(r - (metric.stepCenter ?? metric.R)) - (metric.stepWidth ?? 4)) * 0.15));
       state = step(metric, state, h);
       ct += h;
     }
@@ -173,11 +182,25 @@
   const GLSL = `
 uniform float beta; uniform float profileR; uniform float sigma;
 uniform int termCount; uniform vec3 terms[9];
-struct Metric { vec3 W; mat3 K; };
+uniform int modelKind;uniform sampler2D compactA;uniform sampler2D compactB;uniform vec2 compactSize;uniform bool compactLinear;
+struct Metric { vec3 W; mat3 K; float Phi; };
 mat3 dyad(vec3 a,vec3 b){return mat3(a*b.x,a*b.y,a*b.z);}
 float lp(float x){return log(1.0+exp(-2.0*abs(x)));}
 float power(float x,int n){if(n<=0)return 1.0;if(n==1)return x;if(n==2)return x*x;if(n==3)return x*x*x;return x*x*x*x;}
+vec4 compactSample(sampler2D image,vec2 uv){
+ vec2 p=uv*(compactSize-1.0),cell=floor(p),f=fract(p);
+ if(compactLinear)return texture2D(image,(p+.5)/compactSize);
+ return mix(mix(texture2D(image,(cell+.5)/compactSize),texture2D(image,(cell+vec2(1.5,.5))/compactSize),f.x),mix(texture2D(image,(cell+vec2(.5,1.5))/compactSize),texture2D(image,(cell+1.5)/compactSize),f.x),f.y);
+}
 Metric metricFields(vec3 q){
+ float radius=length(q);Metric exterior;exterior.W=vec3(2,0,0);exterior.K=mat3(0.);exterior.Phi=2.*q.x;
+ if(modelKind==1&&radius>=100.)return exterior;
+ if(modelKind==1&&radius>11.){
+  vec3 n=q/radius,e=vec3(1,0,0);float mu=clamp(n.x,-1.,1.);
+  vec2 uv=vec2(pow((radius-11.)/89.,1./3.),acos(-mu)/3.141592653589793);
+  vec4 a=compactSample(compactA,uv),b=compactSample(compactB,uv);Metric M;
+  M.W=a.x*e+a.y*n;M.K=a.z*dyad(n,n)+a.w*(dyad(n,e)+dyad(e,n))+b.x*dyad(e,e)+b.y*mat3(1.);M.Phi=0.;return M;
+ }
  float r=length(q), rr=max(r,1e-10),a=sigma*profileR,b=sigma*r,t=tanh(a);
  vec3 n=q/rr;float f,g,df,gp,gpp;
  if(b<0.001){float sech2=4.0*exp(-2.0*a)/pow(1.0+exp(-2.0*a),2.0);float k2=sigma*sigma*sech2;
@@ -190,6 +213,7 @@ Metric metricFields(vec3 q){
  }
  vec3 e=vec3(1,0,0);Metric M;
  M.W=beta*(g*e+q.x*gp*n);
+ M.Phi=beta*q.x*g;
  M.K=beta*(gp*(dyad(e,n)+dyad(n,e))+q.x*(gpp*dyad(n,n)+gp/rr*(mat3(1.0)-dyad(n,n))));
  if(r>10.0&&r<40.0&&termCount>0){
   float u=q.x/profileR,w=dot(q.yz,q.yz)/(profileR*profileR),s=(r*r-100.0)/1500.0,h=4.0*s*(1.0-s);
@@ -207,7 +231,14 @@ Metric metricFields(vec3 q){
   vec3 dP=Pu*U+Pw*V;
   mat3 ddP=Puu*dyad(U,U)+Puw*(dyad(U,V)+dyad(V,U))+Pww*dyad(V,V)+Pw*mat3(0,0,0,0,2.0/(profileR*profileR),0,0,0,2.0/(profileR*profileR));
   M.W+=beta*profileR*(B*dP+P*Bs*S);
+  M.Phi+=beta*profileR*B*P;
   M.K+=beta*profileR*(B*ddP+Bs*(dyad(S,dP)+dyad(dP,S))+P*(Bss*dyad(S,S)+Bs*2.0/1500.0*mat3(1.0)));
+ }
+ if(modelKind==1&&r>10.){
+  float t=r-10.,u=1.-t,eta=pow(u,6.)*(pow(u,5.)+11.*t*pow(u,4.)+55.*t*t*pow(u,3.)+165.*t*t*t*u*u+330.*pow(t,4.)*u+462.*pow(t,5.));
+  float ep=-2772.*pow(t,5.)*pow(u,5.),epp=-13860.*pow(t,4.)*pow(u,4.)*(1.-2.*t);
+  M.K=eta*M.K+ep*(dyad(n,M.W)+dyad(M.W,n))+M.Phi*(epp*dyad(n,n)+ep/rr*(mat3(1.)-dyad(n,n)));
+  M.W=eta*M.W+M.Phi*ep*n;M.Phi*=eta;
  }
  return M;
 }

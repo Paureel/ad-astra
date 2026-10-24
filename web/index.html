@@ -346,9 +346,8 @@
             density uses direct metric samples, revolved about x by axisymmetry,
             with a fixed symmetric signed color scale. A common asinh contrast
             transform makes weak negative regions visible; equal positive and
-            negative magnitudes receive equal contrast. Red negative-density
-            points have larger glyphs and greater opacity for visibility; those
-            display aids do not encode their magnitude. Display samples below
+            negative magnitudes receive equal contrast. Both signs use the same
+            glyph size, opacity and depth treatment. Display samples below
             0.005% are omitted; the energy integral retains the tail.
           </p>
           <p id="optical-scope">
@@ -475,6 +474,7 @@
     <script src="timeline.js"></script>
     <script src="physics.js"></script>
     <script src="ray-story.js"></script>
+    <script src="compact-metric.js"></script>
     <script src="metric.js"></script>
     <script src="solution-data.js"></script>
     <script src="app.js"></script>

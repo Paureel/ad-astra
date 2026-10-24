@@ -247,11 +247,26 @@
       entry.artifact.provenance?.created_utc || "",
     ].join(":");
   }
+  function assertBundledEntry(entry, baseline) {
+    if(entry.kind!=="research_scenario")return assertCompatible(entry.artifact,baseline);
+    const data=entry.artifact;
+    assert(data.benchmark.id==="compact100-research" && String(data.benchmark.version)==="1" &&
+      data.candidate.parameters.family==="compact100" && data.candidate.parameters.outer_radius_m===100,
+      "Unsupported bundled research scenario.");
+    assert(data.energy.value_kind==="estimate" && Array.isArray(data.energy.interval_J) &&
+      data.energy.interval_J.length===2 && data.energy.interval_J.every(finite) &&
+      data.energy.interval_J[0]>0 && data.energy.interval_J[0]<=data.energy.interval_J[1] &&
+      data.energy.value_J>=data.energy.interval_J[0] && data.energy.value_J<=data.energy.interval_J[1],"Invalid research energy enclosure.");
+    return assertCompatible(data,{...baseline,
+      benchmark:{...baseline.benchmark,id:"compact100-research",version:"1"},
+      geometry:{...baseline.geometry,extent_m:100,isosurfaces:[]}});
+  }
   const API = {
     validateArtifact,
     sampleSlice,
     labPosition,
     assertCompatible,
+    assertBundledEntry,
     entryKey,
   };
   if (typeof module !== "undefined" && module.exports) module.exports = API;
@@ -406,9 +421,16 @@
       p = data.provenance || {};
     $("provenance-heading").textContent = "Provenance";
     $("entry-scope").textContent =
+      data.benchmark.id==="compact100-research" ?
+      "Separate 2c compact100 research scenario. Original core through 10 m; exactly flat exterior from 100 m. The displayed energy is the refined numerical estimate; the replayed continuum interval is listed below. This is not a v1 record or a Lean certificate. Geometry uses the actual tensor spline; sky rays use its audited interpolated field cache. Peak stress and tides increase. No physical propulsion demonstration." :
       "Absolute Eulerian source energy for the fixed 2c geometry, including the infinite exterior tail. Values are numerical estimates, not certified bounds or propulsion requirements. Formal promotion remains unavailable.";
     $("source-link").href = "https://arxiv.org/abs/2512.18008v1";
     $("source-link").textContent = "Rodal, 2025 ↗";
+    if(data.benchmark.id==="compact100-research"){
+      $("source-link").href="https://github.com/Paureel/ad-astra/tree/main/research/compact100";
+      $("source-link").textContent="Paureel compact100 · validated report ↗";
+    }
+    $("ray-inspect").disabled = !data.rays.length;
     const fields = [
       ["Author", entry.title],
       ["Attribution", entry.author?.source || "Reported artifact metadata"],
@@ -429,7 +451,7 @@
       ],
       [
         "Timeline axes",
-        "log₁₀(elapsed hours + 1), log₁₀(joules); UTC 1-hour bins, local date labels",
+        "Reverse log₁₀(hours before latest + 1), log₁₀(joules); UTC 1-hour bins, local date labels",
       ],
       ["Artifact generated", p.created_utc],
       ["Reported checks", data.status?.numerical || "unreported"],
@@ -440,10 +462,12 @@
       ["Exterior tail", sci(data.energy.tail?.absolute_J) + " J"],
       ["Numerical error estimate", sci(data.energy.error_estimate_J) + " J"],
       ["Error scope", data.energy.error_kind],
+      ["Energy interval / J",data.energy.interval_J?.map(v=>sci(v,11)).join(" to ")],
+      ["Optical cache audit",p.optical_cache ? JSON.stringify(p.optical_cache.audit) : "Analytic frozen-family fields"],
       [
         "Display scale",
         sci(densityScale) +
-          " J/m³; symmetric asinh(ρ / (0.01 × scale)) contrast, common endpoints",
+          " J/m³; symmetric asinh(ρ / ("+window.AdAstraPhysics.DENSITY_CONTRAST+" × scale)) contrast, common endpoints",
       ],
       [
         "Annihilation equivalent",
@@ -525,8 +549,9 @@
     selectedIndex = Math.max(0, Math.min(entries.length - 1, index));
     const entry = current(),
       data = entry.artifact;
-    const [m, e] = data.energy.value_J.toExponential(9).split("e");
+    const [m, e] = data.energy.value_J.toExponential((data.energy.significant_digits||10)-1).split("e");
     $("energy-value").replaceChildren(document.createTextNode(m + " × 10"));
+    if(data.energy.value_kind==="upper_bound")$("energy-value").prepend(document.createTextNode("≤ "));
     const exponent = document.createElement("span");
     exponent.className = "exponent";
     exponent.textContent = Number(e);
@@ -534,10 +559,13 @@
     unit.className = "unit";
     unit.textContent = "J";
     $("energy-value").append(exponent, unit);
-    $("candidate-title").textContent = entry.title;
+    $("candidate-title").textContent = entry.title+(data.benchmark.scenario_label ? " · "+data.benchmark.scenario_label : "");
     $("energy-value").title =
       "Absolute Eulerian source energy · " + data.candidate.id;
-    $("energy-change").textContent = delta(data.energy.value_J);
+    $("energy-change").textContent = data.energy.guaranteed_saving_percent ?
+      "≥ "+(Math.floor(data.energy.guaranteed_saving_percent*100)/100).toFixed(2)+"% less" : delta(data.energy.value_J);
+    $("energy-change").title = data.benchmark.id==="compact100-research" ?
+      "Guaranteed saving from the validation interval against the Rodal 2c reference, using a broader family and redesigned exterior; not a v1 record." : "Numerical change within the fixed benchmark";
     $("history-scrubber").max = entries.length - 1;
     $("history-scrubber").value = selectedIndex;
     $("history-prev").disabled = selectedIndex === 0;
@@ -574,7 +602,7 @@
       h = chart.clientHeight;
     if (!$("history-panel").open || w < 10 || h < 10) return;
     chart.setAttribute("viewBox", `0 0 ${w} ${h}`);
-    chart.setAttribute("data-x-scale", "log10-elapsed-hours-plus-one");
+    chart.setAttribute("data-x-scale", "reverse-log10-hours-before-latest-plus-one");
     chart.setAttribute("data-y-scale", "log10-joules");
     chart.setAttribute("data-time-bin-hours", "1");
     chart.replaceChildren();
@@ -584,6 +612,7 @@
         timestamp: p.published_on,
         energy_J: p.energy_J,
         kind: "publication",
+        benchmark_id:p.id,
         publication: p,
       })),
       ...entries.map((e, index) => ({
@@ -591,6 +620,10 @@
         timestamp: e.evaluated_utc || e.imported_utc,
         energy_J: e.artifact.energy.value_J,
         kind: e.kind || "repository_evaluation",
+        benchmark_id:e.artifact.benchmark.id,
+        scenario_label:e.artifact.benchmark.scenario_label,
+        upper_bound:e.artifact.energy.value_kind==="upper_bound",
+        significant_digits:e.artifact.energy.significant_digits,
         entryIndex: index,
       })),
     ].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
@@ -658,7 +691,7 @@
       {
         hour: projection.maxHour,
         x: end,
-        timestamp: projection.origin + (projection.maxHour - 1) * HOUR_MS,
+        timestamp: projection.latest,
       },
       ...projection.xTicks,
     ];
@@ -727,7 +760,7 @@
       const previous = points[i - 1],
         point = points[i],
         differentParameters =
-          previous.kind === "publication" || point.kind === "publication";
+          previous.benchmark_id !== point.benchmark_id;
       const connection = svg("path", {
         d: `M${previous.x},${previous.y}L${point.x},${point.y}`,
         fill: "none",
@@ -744,7 +777,7 @@
           "title",
           {},
           differentParameters
-            ? "Chronology across different parameters: the original 1c publication and the 2c benchmark are not an improvement comparison."
+            ? "Chronology across different parameters or scenario families; this connector does not establish a fixed-benchmark improvement."
             : "Chronological evaluations of the same fixed 2c benchmark.",
         ),
       );
@@ -789,13 +822,13 @@
     for (const point of points) {
       const publication = point.kind === "publication",
         chosen = !publication && point.entryIndex === selectedIndex;
-      const digits = publication ? point.publication.significant_digits : 10;
-      const energy = sci(point.energy_J, digits) + " J";
+      const digits = publication ? point.publication.significant_digits : point.significant_digits||10;
+      const energy = (point.upper_bound ? "≤ " : "")+sci(point.energy_J, digits) + " J";
       const context = publication
         ? " · " + point.publication.parameters.speed_c + "c"
         : point.kind === "benchmark_reference"
           ? " · 2c"
-          : "";
+          : point.scenario_label ? " · "+point.scenario_label : "";
       const date = publication
         ? point.publication.published_on
         : recordTime(entries[point.entryIndex]);
@@ -1145,7 +1178,7 @@
     drawHistory();
   }).observe(document.querySelector("main"));
   for (const entry of window.WARP_BUNDLED_HISTORY || []) {
-    assertCompatible(entry.artifact, baseline);
+    assertBundledEntry(entry, baseline);
     entries.push(decorateEntry(entry));
   }
   if (!entries.length)

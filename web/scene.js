@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { OrbitControls } from "./vendor/OrbitControls.js";
-import { StellarOptics } from "./optics.js";
+import { StellarOptics, loadCompactCache } from "./optics.js";
 import { createRayInspector } from "./ray-inspector.js";
 
 const $ = (id) => document.getElementById(id);
@@ -246,7 +246,6 @@ function createField(data) {
   const clouds = [0, 1].map(() => ({
     positions: [],
     colors: [],
-    strengths: [],
   }));
   const scale = data.display.rho_scale_abs_J_m3;
   let samples = solution?.density_meridian;
@@ -272,46 +271,43 @@ function createField(data) {
         ...rgb.map((v) => v / 255),
         THREE.SRGBColorSpace,
       );
-    const { positions, colors, strengths } = clouds[value < 0 ? 1 : 0];
+    const { positions, colors } = clouds[value < 0 ? 1 : 0];
     // Stagger azimuthal samples to avoid visually inventing meridional bands.
     const phase = x * 2.399963229728653 + r * 0.7548776662466927;
-    for (let k = 0; k < 12; k++) {
-      const phi = (k * Math.PI) / 6 + phase;
+    // A fixed count undersamples the large outer negative region. Follow
+    // circumference for both signs; don't stack duplicate samples on the axis.
+    const azimuths = r<1e-6 ? 1 : Math.max(12,Math.min(64,Math.ceil(2*Math.PI*r/6)));
+    for (let k = 0; k < azimuths; k++) {
+      const phi = (k * Math.PI * 2) / azimuths + phase;
       positions.push(x, r * Math.cos(phi), r * Math.sin(phi));
       colors.push(color.r, color.g, color.b);
-      strengths.push(Math.min(1, Math.abs(value)));
     }
   });
-  clouds.forEach(({ positions, colors, strengths }, negative) => {
+  clouds.forEach(({ positions, colors }) => {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute(
       "position",
       new THREE.Float32BufferAttribute(positions, 3),
     );
     geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-    geometry.setAttribute(
-      "strength",
-      new THREE.Float32BufferAttribute(strengths, 1),
-    );
     const material = new THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
       vertexColors: true,
+      depthTest: true,
       uniforms: {
         pixelRatio: { value: Math.min(devicePixelRatio || 1, 1.5) },
-        emphasis: { value: negative },
       },
-      vertexShader: `attribute float strength; varying vec3 vColor; varying float vStrength; uniform float pixelRatio; uniform float emphasis;
-      void main(){vColor=color;vStrength=strength;vec4 view=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*view;gl_PointSize=clamp(200./-view.z,1.1,3.5)*pixelRatio*(1.+1.1*emphasis);}`,
-      fragmentShader: `varying vec3 vColor;varying float vStrength;uniform float emphasis;
-      void main(){float r=length(gl_PointCoord-vec2(.5));if(r>.5)discard;float a=(1.-smoothstep(.15,.5,r))*min(.85,(.12+.78*pow(vStrength,.4))*(1.+.8*emphasis));gl_FragColor=vec4(vColor,a);
+      vertexShader: `varying vec3 vColor;uniform float pixelRatio;
+      void main(){vColor=color;vec4 view=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*view;gl_PointSize=clamp(200./-view.z,2.5,3.5)*pixelRatio;}`,
+      fragmentShader: `varying vec3 vColor;
+      void main(){float r=length(gl_PointCoord-vec2(.5));if(r>.5)discard;float a=(1.-smoothstep(.15,.5,r))*.6;gl_FragColor=vec4(vColor,a);
       #include <tonemapping_fragment>
       #include <colorspace_fragment>}`,
     });
     const points = new THREE.Points(geometry, material);
-    // Diagnostic visibility emphasis: glyph area/opacity is not density. Draw
-    // negatives after the translucent positive cloud, retaining depth testing.
-    points.renderOrder = negative ? 2 : 0;
+    // Identical point size, opacity and depth treatment for both signs.
+    points.renderOrder = 0;
     group.add(points);
   });
   return group;
@@ -435,12 +431,12 @@ function setCamera(view) {
   camera.up.set(0, 0, 1);
   controls.target.set(0, 0, 0);
   if (view === "xy") {
-    camera.position.set(0, 0, 100);
+    camera.position.set(0, 0, 330);
     camera.up.set(0, 1, 0);
   } else if (view === "yz") {
-    camera.position.set(100, 0, 0);
+    camera.position.set(330, 0, 0);
     camera.up.set(0, 0, 1);
-  } else camera.position.set(-62.1, -87.75, 58.05);
+  } else camera.position.set(-167.67, -236.925, 156.735);
   framingFactor = Math.max(1, 0.9 / (host.clientWidth / host.clientHeight));
   camera.position.multiplyScalar(framingFactor);
   camera.lookAt(0, 0, 0);
@@ -458,7 +454,7 @@ function createControls() {
   orbit.dampingFactor = 0.12;
   orbit.enablePan = false;
   orbit.minDistance = 0.35;
-  orbit.maxDistance = 320;
+  orbit.maxDistance = 800;
   orbit.addEventListener("change", requestRender);
   orbit.addEventListener("start", () => {
     document.querySelectorAll("[data-camera]").forEach((button) => {
@@ -499,18 +495,22 @@ function setupDiagnostics() {
           0,
         ),
         playing,
+        shader_errors:window.AdAstraShaderErrors||[],
+        candidate_id:currentArtifact?.candidate.id,
+        parameter_hash:currentArtifact?.candidate.parameter_hash,
+        benchmark_id:currentArtifact?.benchmark.id,
         ray_count: currentArtifact?.rays.length,
         observer_m: camera.position.toArray(),
         view_direction: camera.getWorldDirection(new THREE.Vector3()).toArray(),
       };
     },
-    audit(ray = null) {
+    audit(ray = null, {inside=false} = {}) {
       const solution = solutionFor(currentArtifact);
       if (!solution)
         throw new Error("No independent fixtures for this artifact.");
       const result = optics.audit(
         solution.field_audit,
-        solution.optical_reference,
+        inside ? solution.optical_inside_reference : solution.optical_reference,
         ray,
       );
       requestRender();
@@ -529,7 +529,7 @@ function setupDiagnostics() {
         position.length !== 3 ||
         !position.every(Number.isFinite) ||
         Math.hypot(...position) < 0.35 ||
-        Math.hypot(...position) > 320
+        Math.hypot(...position) > 800
       )
         throw new Error("Observer must be within the supported camera range.");
       camera.position.set(...position);
@@ -589,11 +589,15 @@ try {
     preserveDrawingBuffer: true,
   });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
-  optics = new StellarOptics(renderer, requestRender);
+  renderer.debug.onShaderError=(gl,program,vertex,fragment)=>{
+    (window.AdAstraShaderErrors ||= []).push(gl.getProgramInfoLog(program)+"\n"+gl.getShaderInfoLog(vertex)+"\n"+gl.getShaderInfoLog(fragment));
+    fail("3D graphics could not be compiled. Reload to retry.");
+  };
+  optics = new StellarOptics(renderer, requestRender, await loadCompactCache());
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2("#0b1229", 0.002);
-  camera = new THREE.PerspectiveCamera(40, 1, 0.02, 600);
+  camera = new THREE.PerspectiveCamera(40, 1, 0.02, 2000);
   camera.up.set(0, 0, 1);
   controls = createControls();
   scene.add(new THREE.AmbientLight("#a6baff", 1.8));
@@ -680,7 +684,7 @@ try {
       s.phi = Math.min(Math.PI - 0.05, s.phi + 0.1);
     if (["+", "="].includes(event.key))
       s.radius = Math.max(0.35, s.radius * 0.85);
-    if (event.key === "-") s.radius = Math.min(230, s.radius * 1.08);
+    if (event.key === "-") s.radius = Math.min(800, s.radius * 1.08);
     const next = new THREE.Vector3().setFromSpherical(s);
     camera.position.set(next.x, next.z, next.y).add(controls.target);
     controls.update();
@@ -695,7 +699,7 @@ try {
     const captions = [
       `Ad Astra · ${currentArtifact.candidate.id} · ${currentArtifact.benchmark.id}`,
       "Comoving metres · numerical only · g00 = 0 surface · schematic 8 m craft",
-      "Color: symmetric asinh contrast; negative glyph size/opacity emphasized",
+      "Color: symmetric asinh contrast; identical glyph size/opacity for both signs",
       "Parameters: " + currentArtifact.candidate.parameter_hash,
       "Observer / m: " +
         camera.position

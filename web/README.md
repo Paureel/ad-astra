@@ -8,6 +8,10 @@ uses vendored Three.js modules, so use HTTP rather than opening a file URL.
 One full-screen scene contains the geometry, selected energy, and historical
 evaluations. Select a timeline point or use the history slider to inspect its
 saved artifact. The camera and physical color scale stay fixed between entries.
+Each history arrow switches the density mesh, stationary limit and optical metric
+together. The newest entry is **Paureel · Compact 100 m**, a separate research
+scenario. Its concrete displayed energy is the refined **1.5448691 × 10⁴⁵ J**
+estimate; the replayed continuum interval remains in provenance and exports.
 The timeline starts as a slim bottom strip. Its native disclosure control
 expands the chart on demand and collapses it again, by pointer or keyboard.
 The icon controls select layers, camera views, the density slice, and PNG export.
@@ -63,17 +67,18 @@ with that attribution recorded separately from the unchanged scientific data.
 Future entries use contributor names, not candidate IDs.
 
 Both axes are logarithmic. Energy uses log10(joules). Time uses
-log10(1 + elapsed UTC hours since the first publication's day boundary).
-The one-hour shift makes the first coordinate positive; Unix timestamps are
-not logged. Events are placed in UTC one-hour bins without changing their
+reverse log10(1 + UTC hours before the latest entry), increasing toward the
+newest date on the right. This expands recent submissions while retaining older
+publications. The one-hour shift handles zero age; Unix timestamps are not
+logged. Events are placed in UTC one-hour bins without changing their
 original timestamps. Same-hour events share exactly the same x coordinate;
 separate callouts and the history controls keep them inspectable. Date labels
 and hours use the browser's local timezone; provenance and CSV retain UTC.
 Axis ticks are thinned for legibility, not for data resolution.
 
 All points are connected chronologically. A dashed, muted connector identifies
-the transition from the original 1c publication to the 2c benchmark; its tooltip
-explains that the different parameters are not an improvement comparison.
+transitions across the 1c publication, 2c benchmark and compact100 scenario;
+its tooltip explains the changed comparison scope.
 Solid blue connectors compare evaluations of the same fixed benchmark.
 History dates are recorded evaluations, not acceptance or certification dates.
 Numerical error estimates are not certified intervals.
@@ -100,17 +105,19 @@ change the permanent numerical-only display or enable formal promotion.
 - Positions are comoving metres. The frozen slices are Euclidean; this is a
   coordinate view, not a curved-space embedding.
 - The 3D point field revolves direct Python evaluations on a refined meridional
-  grid around x, using the frozen family's axisymmetry. It covers radius ≤40 m.
+  grid around x, using axisymmetry. It covers radius ≤40 m for v1 and ≤100 m
+  for the separately labelled compact100 tensor spline.
   Samples below 0.005% of the fixed density scale are omitted for display; no
   energy is removed from the integral. Opacity exposes structure rather than
   encoding a second physical field. Older local artifacts without a generated
   mesh retain their supplied interpolated density samples.
 - The signed color mapping is symmetric and fixed to common baseline endpoints.
-  Contrast is asinh(|ρ|/(0.01×scale))/asinh(100), using the same transform for
+  Contrast is asinh(|ρ|/(0.0001×scale))/asinh(10000), using the same transform for
   both signs, candidates and slices. This exposes weaker negative peaks without
-  changing values; the legend uses that same mapping. Negative glyphs are 2.1×
-  larger and up to 1.8× more opaque to expose their region through the positive
-  cloud. Glyph size, opacity and layering are diagnostic visibility aids.
+  changing values; the legend uses that same mapping. Both signs use identical
+  glyph size, opacity and depth treatment, with no red outlines or halos.
+  Azimuth samples follow circumference (target 6 m spacing, 12–64 off-axis,
+  one on-axis), so the wider outer region is not undersampled by a fixed count.
   Rose denotes negative density; cyan denotes positive density, in J/m³.
   Values outside the scale saturate and are counted in provenance and the slice.
 - The slice interpolates the supplied density grid. Offset and plane selection

@@ -27,7 +27,8 @@
     if (!records.length) throw new Error("History is empty.");
     const buckets = records.map((r) => hourBucket(r.timestamp));
     const origin = Math.min(...buckets);
-    const hours = buckets.map((t) => 1 + (t - origin) / HOUR_MS);
+    const latest = Math.max(...buckets);
+    const hours = buckets.map((t) => 1 + (latest - t) / HOUR_MS);
     const maxHour = Math.max(2, ...hours);
     const logs = records.map((r) => {
       if (!Number.isFinite(r.energy_J) || r.energy_J <= 0)
@@ -37,7 +38,7 @@
     const minLogY = Math.floor(Math.min(...logs));
     const maxLogY = Math.max(minLogY + 1, Math.ceil(Math.max(...logs)));
     const x = (hour) =>
-      box.left + (Math.log10(hour) / Math.log10(maxHour)) * box.width;
+      box.left + (1-Math.log10(hour) / Math.log10(maxHour)) * box.width;
     const y = (energy) =>
       box.top +
       ((maxLogY - Math.log10(energy)) / (maxLogY - minLogY)) * box.height;
@@ -49,7 +50,7 @@
           xTicks.push({
             hour,
             x: x(hour),
-            timestamp: origin + (hour - 1) * HOUR_MS,
+            timestamp: latest - (hour - 1) * HOUR_MS,
           });
       }
     }
@@ -63,6 +64,7 @@
     }
     return {
       origin,
+      latest,
       maxHour,
       xTicks,
       yTicks,
