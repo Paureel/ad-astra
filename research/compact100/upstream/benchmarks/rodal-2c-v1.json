@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "rodal-2c-v1-draft",
+  "status": "draft_numerical_research",
+  "theory": "classical_general_relativity_lambda_zero",
+  "source": {
+    "id": "rodal-2025",
+    "title": "A warp drive with predominantly positive invariant energy density and global Hawking-Ellis Type I",
+    "author": "Jose Rodal",
+    "arxiv": "2512.18008v1",
+    "url": "https://arxiv.org/abs/2512.18008v1",
+    "doi": "10.1007/s10714-025-03495-x",
+    "equations": ["14", "36", "40", "42", "43", "58", "59"],
+    "relationship": "Exact published metric family, standardized parameters; no claim of a global state-of-the-art minimum."
+  },
+  "constants": {"c_m_s": "299792458", "G_m3_kg_s2": "66743/1000000000000000"},
+  "parameters": {"speed_c": "2", "profile_radius_m": "20", "sigma_per_m": "1"},
+  "cabin": {
+    "proper_radius_m": "10",
+    "exactly_flat": false,
+    "maximum_shift_norm": "1/1000000",
+    "meaning": "A fixed proper spatial ball in flat spatial slices; stationary comoving worldlines are timelike if the shift norm is below one. The metric is approximately flat within it."
+  },
+  "family": {
+    "name": "rodal_irrotational_potential_with_axisymmetric_compact_perturbations",
+    "coordinate_frame": "comoving q=(x_lab-2ct,y,z); time coordinate u=ct has units metres",
+    "metric": "ds^2=-du^2+sum_i(dq_i+W_i(q)du)^2; W=grad(Phi)",
+    "potential": "Phi=beta*(x*g0(r)+R*b(s)*P(x/R,(y^2+z^2)/R^2))",
+    "g0": "g0(r)=r^-1*integral_0^r [1-F(a)]da, g0(0)=0; F is Rodal Eq14",
+    "window": "b(s)=(4s(1-s))^6 for 0<s<1; zero otherwise",
+    "inner_support_m": "10",
+    "outer_support_m": "40",
+    "s": "(r^2-inner_support_m^2)/(outer_support_m^2-inner_support_m^2)",
+    "maximum_weighted_degree": 4,
+    "maximum_abs_coefficient": "1/10",
+    "weighted_degree": "x_power+2*transverse_power",
+    "regularity": "Potential C5 and metric C4 across perturbation joins; published baseline is smooth.",
+    "asymptotics": "Infinite tail is retained. W tends to beta*e_x; laboratory coordinates are asymptotically Minkowski."
+  },
+  "objective": {
+    "id": "absolute_eulerian_source_energy",
+    "unit": "J",
+    "direction": "minimize",
+    "definition": "integral_R3 abs(T(n,n)) d^3q",
+    "observer": "n=(1,-W), unit normal to u=constant slices",
+    "reduced_density": "rho_E=c^4/(16*pi*G)*((trace Hess(Phi))^2-trace(Hess(Phi)^2))",
+    "future_official_score": "certified upper bound U in joules",
+    "current_score_status": "numerical estimate, not a certified score"
+  },
+  "draft_admissibility_caps": {
+    "maximum_shift_norm": "4",
+    "maximum_shift_jacobian_frobenius_per_m": "2",
+    "maximum_shift_hessian_frobenius_per_m2": "4",
+    "scope": "Global derivative bounds are required by the draft specification but not yet proved. Sampled diagnostics do not establish admissibility."
+  },
+  "numerics": {
+    "tail_start_m": "80",
+    "relative_tolerance": "1/100000000",
+    "display_extent_m": "40",
+    "slice_grid_size": 65,
+    "slice_offsets_m": ["-10", "0", "10"],
+    "ray_final_ct_m": "60"
+  },
+  "formal_status": {
+    "geometry_to_energy_bridge": "not_implemented",
+    "continuum_admissibility": "not_implemented",
+    "body_integral_certificate": "not_implemented",
+    "tail_enclosure_formalization": "not_implemented",
+    "promotion_enabled": false
+  }
+}

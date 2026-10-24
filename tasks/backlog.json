@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "rodal-2c-v1-draft",
+  "purpose": "Assignable research tasks. A task being complete does not change a candidate's scientific status.",
+  "claim_policy": "Claims are advisory. Record the owner, starting revision, and bounded scope in an issue or handoff; preserve parallel independent work.",
+  "tasks": [
+    {
+      "id": "WP-001",
+      "title": "Independently audit the published-model reproduction",
+      "priority": "P0",
+      "status": "open",
+      "role": "independent verifier",
+      "depends_on": [],
+      "first_step": "Read the cited Rodal paper and compare its scalar potential, units, and fiducial parameters with the implemented reproduction.",
+      "acceptance": [
+        "Provide an equation-by-equation comparison with exact paper locations and source revision.",
+        "Independently reproduce the paper fiducial calculation without importing the main evaluator's Hessian routine.",
+        "Explain disagreements, numerical error, and any unsupported interpretation."
+      ],
+      "scope": ["Independent audit code and report", "No benchmark change without a version proposal"]
+    },
+    {
+      "id": "WP-002",
+      "title": "Prove the metric-to-Eulerian-energy bridge",
+      "priority": "P0",
+      "status": "open",
+      "role": "formal prover",
+      "depends_on": ["WP-001"],
+      "first_step": "State the exact metric, lapse, shift, normal observer, signature, and curvature conventions used by the benchmark.",
+      "acceptance": [
+        "Derive the stated rho_E expression from the metric and chosen Einstein-equation conventions.",
+        "Express the result in the formal definitions used by certificate consumers.",
+        "Document all assumptions and axiom dependencies; do not assume the target formula as a new axiom."
+      ],
+      "scope": ["formal/", "docs/FORMALIZATION.md", "A complete GR bridge, not only its final algebraic identity"]
+    },
+    {
+      "id": "WP-003",
+      "title": "Specify continuous admission conditions for the first stable benchmark",
+      "priority": "P0",
+      "status": "open",
+      "role": "mathematical specification reviewer",
+      "depends_on": ["WP-001"],
+      "first_step": "Inventory which current constraints are exact decoder restrictions and which properties are only sampled or unimplemented.",
+      "acceptance": [
+        "Specify every promised cabin, regularity, stress, curvature, and causal condition with its domain and units.",
+        "Justify the chosen thresholds and identify an admissible baseline or document the obstruction.",
+        "Propose an explicit stable benchmark version rather than silently editing existing comparison records."
+      ],
+      "scope": ["Benchmark-version proposal", "Continuous mathematical conditions", "No claim of material realizability"]
+    },
+    {
+      "id": "WP-004",
+      "title": "Construct a rigorous whole-space energy enclosure",
+      "priority": "P0",
+      "status": "open",
+      "role": "validated numerics and formal proof",
+      "depends_on": ["WP-001"],
+      "first_step": "Separate the finite-domain absolute-value integral and infinite exterior tail, and locate where the current numerical estimate lacks a proved error enclosure.",
+      "acceptance": [
+        "Produce checked lower and upper bounds for the complete E_abs integral.",
+        "Handle sign changes, coordinate singularities, integration Jacobians, and all exterior contributions.",
+        "Make the certificate checker reject malformed, incomplete, and overoptimistic bounds.",
+        "Connect the certificate statement to the continuum integral, with its remaining GR dependency explicit."
+      ],
+      "scope": ["Untrusted certificate producer", "Small checked certificate interface", "Independent enclosure validation"]
+    },
+    {
+      "id": "WP-005",
+      "title": "Bind exact candidate data to formal definitions",
+      "priority": "P0",
+      "status": "open",
+      "role": "proof interface engineer",
+      "depends_on": [],
+      "first_step": "Map the rational polynomial coefficient encoding and trusted support function to exact formal objects.",
+      "acceptance": [
+        "Establish that formal and numerical decoders refer to the same candidate and benchmark.",
+        "Check coefficient bounds, physical polynomial degree, support matching, and required regularity over the whole domain.",
+        "Bind certificate inputs to canonical candidate and benchmark identities without trusting user-provided status flags."
+      ],
+      "scope": ["Candidate decoder", "formal/", "Provenance and exact representation"]
+    },
+    {
+      "id": "WP-006",
+      "title": "Check stress and curvature through an independent tensor calculation",
+      "priority": "P1",
+      "status": "open",
+      "role": "independent numerical relativist",
+      "depends_on": ["WP-001"],
+      "first_step": "Audit the existing metric-sampling Christoffel/Ricci/Einstein route in src/warpproof/independent.py, then extend the stress and curvature diagnostics in an explicit orthonormal observer frame.",
+      "bootstrap_evidence": "The included finite-difference route agrees with the reduced invariant at five nonsymmetric baseline points with approximately second-order refinement. It shares the profile/shift implementation and is a numerical diagnostic, not a formal GR bridge.",
+      "acceptance": [
+        "Compare the energy density with the independent tensor route on the baseline and perturbed candidates.",
+        "Measure refinement behavior and explain numerical residuals and units.",
+        "Label sampled diagnostics as sampled; identify what further bounds would establish continuous admission."
+      ],
+      "scope": ["Independent audit implementation", "Numerical reports", "No automatic formal promotion"]
+    },
+    {
+      "id": "WP-007",
+      "title": "Search the permitted rational perturbation family",
+      "priority": "P1",
+      "status": "open",
+      "role": "searcher",
+      "depends_on": ["WP-001"],
+      "first_step": "Run the documented eight-iteration search, then identify one reproducible strategy for exploring exact allowed coefficients.",
+      "acceptance": [
+        "Output exact candidate data accepted by the approved decoder.",
+        "Use the frozen benchmark and independently reevaluate any claimed improvement at tighter numerical settings.",
+        "Report the actual search budget, unsuccessful regions, and unresolved numerical uncertainty.",
+        "Retain numerical-only status until the complete formal pipeline is available."
+      ],
+      "scope": ["Optimizer and candidate data", "No changes to the energy definition or constraints"]
+    },
+    {
+      "id": "WP-008",
+      "title": "Validate scientific viewer fields and ray interpretation",
+      "priority": "P1",
+      "status": "open",
+      "role": "visualization verifier",
+      "depends_on": ["WP-001"],
+      "first_step": "Trace each displayed field, contour, coordinate label, and ray to its generator and mathematical definition.",
+      "acceptance": [
+        "Document which quantities are sampled, interpolated, analytic, or decorative.",
+        "Check frame and unit consistency and preserve common scales in candidate comparisons.",
+        "Keep rendering provenance linked to the exact candidate and benchmark.",
+        "Ensure imported JSON cannot enable a certified label or hide missing obligations."
+      ],
+      "scope": ["web/", "Viewer-data generator", "No claim that an animation proves causal transport"]
+    },
+    {
+      "id": "WP-009",
+      "title": "Complete and independently audit formal promotion",
+      "priority": "P0",
+      "status": "blocked",
+      "role": "maintainer and independent proof reviewer",
+      "depends_on": ["WP-002", "WP-003", "WP-004", "WP-005"],
+      "first_step": "Keep the current refusal gate unchanged while defining a complete candidate-admission theorem and evidence manifest.",
+      "acceptance": [
+        "Kernel-check the whole theorem chain for a candidate under the approved stable benchmark.",
+        "Independently review the assumptions, axiom closure, input binding, and trusted checker.",
+        "Reject invalid proofs, incomplete bounds, mismatched candidates, stale benchmarks, and unsupported status claims.",
+        "Regenerate and review evidence from a clean checkout before creating the first certified record."
+      ],
+      "scope": ["Formal gate", "Record registry", "Public CI trust boundary", "No passing placeholder"]
+    }
+  ]
+}

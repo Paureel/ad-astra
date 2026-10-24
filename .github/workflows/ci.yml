@@ -1,0 +1,206 @@
+name: Numerical checks and scoped proof checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Submitted code runs without repository write permissions or project secrets.
+# This workflow never promotes records or deploys the viewer.
+permissions:
+  contents: read
+
+concurrency:
+  group: warpproof-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  numerical-checks:
+    name: Submitted-code numerical checks (not certification)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out submitted revision
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          # Contributor attribution may refer to an earlier exact commit.
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up reference Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12.14'
+      - name: Install pinned runtime and project
+        run: |
+          python3 -m pip install --disable-pip-version-check -r requirements.lock
+          python3 -m pip install --disable-pip-version-check --no-deps --no-build-isolation -e .
+      - name: Verify source manifest
+        run: python3 scripts/package_release.py --verify-manifest
+      - name: Run numerical and validation regressions
+        run: python3 -m unittest discover -s tests -v
+      - name: Check and build the scientific viewer
+        run: |
+          node --version
+          npm test
+          npm run build
+      - name: Check exact-rational tensor diagnostic
+        run: python3 formal/diagnostics/direct_ricci_check.py
+      - name: Reproduce the published fiducial model
+        run: python3 -m warpproof reproduce --output results/ci-paper-reproduction.json
+      - name: Evaluate the draft baseline
+        run: python3 -m warpproof evaluate candidates/rodal-baseline.json --output results/ci-baseline.json
+      - name: Generate numerical viewer data
+        run: python3 -m warpproof render-data candidates/rodal-baseline.json --output results/ci-viewer.json
+      - name: Confirm that incomplete formal promotion is rejected
+        run: |
+          python3 - <<'PY'
+          import subprocess
+          import sys
+
+          result = subprocess.run(
+              [sys.executable, "-m", "warpproof", "verify", "--require-formal"],
+              check=False,
+          )
+          if result.returncode != 2:
+              raise SystemExit(
+                  "Expected explicit formal-promotion refusal (exit 2); "
+                  f"received {result.returncode}."
+              )
+          print("Formal promotion remains unavailable, as required by the bootstrap.")
+          PY
+      - name: Save numerical diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: numerical-diagnostics-${{ github.run_id }}
+          path: results/ci-*.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  base-evaluator-candidates:
+    name: Base evaluator on submitted data (not certification)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out approved base evaluator separately
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted-base
+          persist-credentials: false
+      - name: Check out submitted candidate data separately
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: submitted-data
+          persist-credentials: false
+      - name: Set up reference Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12.14'
+      - name: Install only the base evaluator
+        run: |
+          python3 -m pip install --disable-pip-version-check -r trusted-base/requirements.lock
+          python3 -m pip install --disable-pip-version-check --no-deps --no-build-isolation -e trusted-base
+      - name: Evaluate bounded data-only submissions
+        working-directory: trusted-base
+        env:
+          TRUSTED_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          SUBMITTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+
+          candidate_dir = Path("../submitted-data/candidates")
+          if candidate_dir.is_symlink() or not candidate_dir.is_dir():
+              raise SystemExit("Expected a regular candidates directory.")
+          submitted = sorted(candidate_dir.glob("*.json"))
+          if not submitted:
+              raise SystemExit("No candidate JSON files were submitted.")
+          candidates = []
+          changed_count = 0
+          for candidate in submitted:
+              if candidate.is_symlink() or not candidate.is_file():
+                  raise SystemExit(f"Not a regular candidate file: {candidate}")
+              if candidate.stat().st_size > 65536:
+                  raise SystemExit(f"Candidate exceeds the 64 KiB input limit: {candidate}")
+              previous = Path("candidates") / candidate.name
+              unchanged = (
+                  previous.is_file() and not previous.is_symlink()
+                  and previous.read_bytes() == candidate.read_bytes()
+              )
+              if not unchanged:
+                  changed_count += 1
+              if not unchanged or candidate.name == "rodal-baseline.json":
+                  candidates.append(candidate)
+          if changed_count > 32:
+              raise SystemExit("At most 32 changed candidate files are allowed per bounded replay.")
+          output = Path("../base-evaluation-results")
+          output.mkdir()
+          for candidate in candidates:
+              subprocess.run(
+                  [sys.executable, "-m", "warpproof", "evaluate",
+                   str(candidate.resolve()), "--output", str(output / ("candidate-" + candidate.name))],
+                  check=True,
+                  timeout=120,
+              )
+          (output / "review-context.json").write_text(
+              json.dumps({
+                  "trusted_evaluator_commit": os.environ["TRUSTED_BASE_SHA"],
+                  "candidate_source_commit": os.environ["SUBMITTED_HEAD_SHA"],
+                  "candidate_files_evaluated": [path.name for path in candidates],
+                  "changed_candidate_count": changed_count,
+                  "status": "numerical_only",
+                  "formal_certification": False,
+                  "note": "Workflow and evaluator changes still require independent review."
+              }, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+      - name: Save base-evaluator diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: base-evaluator-diagnostics-${{ github.run_id }}
+          path: base-evaluation-results/*.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  scoped-lean-checks:
+    name: Lean arithmetic and polynomial checks (not GR certification)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out submitted formal component
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install the exact Lean release with a checked archive digest
+        run: |
+          test "$(cat formal/lean-toolchain)" = "leanprover/lean4:v4.35.0"
+          WARP_LEAN_ARCHIVE="$RUNNER_TEMP/lean-4.35.0-linux.tar.zst"
+          curl --fail --show-error --location --retry 3 \
+            --output "$WARP_LEAN_ARCHIVE" \
+            https://github.com/leanprover/lean4/releases/download/v4.35.0/lean-4.35.0-linux.tar.zst
+          printf '%s  %s\n' \
+            '7289597a44543246c9227b8cae501767e095ce17f6d448b95fc4a8dc97268f6d' \
+            "$WARP_LEAN_ARCHIVE" | sha256sum --check --strict
+          tar --no-same-owner --zstd -xf "$WARP_LEAN_ARCHIVE" -C "$RUNNER_TEMP"
+          printf '%s\n' "$RUNNER_TEMP/lean-4.35.0-linux/bin" >> "$GITHUB_PATH"
+      - name: Build the scoped formal library
+        working-directory: formal
+        run: lake build
+      - name: Audit named theorem axiom dependencies
+        working-directory: formal
+        run: lake env lean Audit.lean

@@ -1,0 +1,120 @@
+{
+  "status": "numerical_only",
+  "formal_certification": false,
+  "evidence_kind": "exact_rational_global_caps_and_outward_core_energy_enclosure",
+  "contract_id": "rodal-2c-free-exterior-research",
+  "contract_sha256": "c5ceac307000cb0f332a737347dec8bd2f3af5c3872e2f120ca97e57b78cdbb3",
+  "candidate_sha256": "91a48a8337b6b4139119b959995b47ee4a706df999614b28f94cb797c18509c8",
+  "candidate_binding_scope": "Frozen axial, transverse and core profiles, with main caps proved uniformly for every finite real T>=10; base data instance T=1000. Other exact T instances are bound separately by the energy receipt.",
+  "core_cutoff": {
+    "inner_radius_m": "10",
+    "outer_radius_m": "11",
+    "transition_coordinate": "r-10",
+    "transition_degree": 11,
+    "transition_power_coefficients": [
+      "1",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "-462",
+      "1980",
+      "-3465",
+      "3080",
+      "-1386",
+      "252"
+    ],
+    "inside_value": "1",
+    "outside_value": "0"
+  },
+  "main_profile": "f=x on|x|<=12; positive-side transitions12..24 and36..48 with degree11 smootherstep, slope-3/4 on24..36; f odd, zero outside48",
+  "transverse_profile": "G=1 belowrho12; G=1-S(log(rho/12)/T) untilrho12exp(T); zero beyond; every finiteT>=10",
+  "verifier_sha256": "6dfee093b5fbfd8ae31bf56ff955decc0aae053682e1300efea7f66f2710340b",
+  "interval_primitives_sha256": "09f847537a935ca437bfd41fb72df57b7752a8a3f5c80a948bf705df0a1d981e",
+  "rational_proof": {
+    "smoothstep_derivative_bounds": [
+      "693/256",
+      "3465/64",
+      "3465/4"
+    ],
+    "axial_absolute_bounds": [
+      "24",
+      "1",
+      "1617/4096",
+      "2695/4096"
+    ],
+    "main_squared_norm_upper_bounds": [
+      "5497849/409600",
+      "74331873/104857600",
+      "19162538964019451/10995116277760000"
+    ],
+    "main_norm_upper_bounds": [
+      "3.6636706880062582939222894524734618062512671401489",
+      "0.84195248185673276395304604558162367734442630899869",
+      "1.3201601289348571983279669074825220804734207233032"
+    ],
+    "main_global_caps_pass": true,
+    "uniform_parameter_range": "Every finite real T>=10",
+    "core_coarse_norm_upper_bounds": [
+      "13/10000000",
+      "1/40000",
+      "1/2500"
+    ],
+    "core_coarse_energy_upper_J_exact_rational": "6719560748178859059468824245704942110000000/200229",
+    "exponential_taylor_checks": [
+      {
+        "argument": 18,
+        "lower_threshold": "50000000",
+        "degree": 100,
+        "exact_partial_sum": "381442405443067608169031484880675294208758503164836866960025952842200705099279529619788128865208626035079729493/5809360108672381722503965782969416525178112218396162266995341480639882955738338867980659008026123046875"
+      },
+      {
+        "argument": 20,
+        "lower_threshold": "100000000",
+        "degree": 100,
+        "exact_partial_sum": "1598020530489155667748602988164365902299282381241593934901288751544733494653464760257871337553064633235321732747701237619/3293765805148909049198165549925068950773190492556012617920936889322674365278279691776420658923055326294732937039"
+      },
+      {
+        "argument": 38,
+        "lower_threshold": "10000000000000000",
+        "degree": 100,
+        "exact_partial_sum": "148575160051520704150104758072666060397741107384905130760325484952129327770671802446777379601649409788640326896784866537301210536281985167/4663971570015130705571093619493197972155524166443316243383833501861713118992275509020364649505255007060348987579345703125"
+      },
+      {
+        "argument": 40,
+        "lower_threshold": "100000000000000000",
+        "degree": 100,
+        "exact_partial_sum": "2325911828830882692725200413570156127385033197408950955127290316743019955144391525487002635917671213619603369477776163580715317397/9881297415446727147594496649775206852319571477668037853762810667968023095834839075329261976769165978884198811117"
+      }
+    ],
+    "core_cabin_shift_upper": "1/50000000"
+  },
+  "core_integral": {
+    "radial_level": 9,
+    "radial_cells": 5120,
+    "core_energy_J_interval": [
+      "69199896209344984085173111091.018156477685656124668",
+      "74664361369652047604111728273.550197282245861865428"
+    ],
+    "tiny_ball_r_le_1_energy_upper_J": "12707683425551.166025990726793010923692372233792310",
+    "tiny_ball_r_le_1_norm_upper_bounds": [
+      "2E-16",
+      "1E-15",
+      "2E-14"
+    ],
+    "core_interval_norm_upper_bounds": [
+      "1.1920184774761142136108408997841313521344632239794E-8",
+      "7.0037097483979250217476241470079177280164763060255E-8",
+      "6.5330227051087289711620089153667303666004390998365E-7"
+    ],
+    "core_caps_pass": true,
+    "whole_space_core_correction": "eta(r)*Phi0, eta=1 on r<=10, eta=1-S(r-10) on10<r<11, eta=0 on r>=11"
+  },
+  "disjoint_support_argument": "The main potential is identically zero on the open cylinder |x|<12,rho<12. The core correction is supported in the closed ball r<=11, strictly inside that cylinder. Thus the two Hessians have disjoint supports and their absolute source energies add exactly.",
+  "regularity": "S and its first five derivatives match the constant endpoint values; the axial f is C6 and transverse G is C5. The core cutoff is C5 and equals the original baseline onr<=10. Therefore the total potential is C5 and metric C4.",
+  "finite_energy": "For each finiteT, the main Hessian has compact support in |x|<=48,rho<=12exp(T). The correction has compact support inr<=11. The metric is exactly asymptotically Minkowski in laboratory coordinates.",
+  "scope": "Ordinary computer-assisted mathematics under the benchmark GR identity and reviewed Decimal implementation. No formal Lean certification or physical realization claim.",
+  "elapsed_seconds": 3.662335442000767,
+  "core_energy_upper_J_exact_rational": "18666090342413011901027932068387549320561465466357/250000000000000000000"
+}

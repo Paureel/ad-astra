@@ -1,0 +1,30 @@
+name: Validation or interpretation bug
+description: Report a concrete way a check, bound, or scientific label can be wrong.
+title: "[Validation] "
+body:
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected invariant
+      description: State the mathematical condition or repository rule that should hold.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include the commit, candidate or input, exact command, and actual output.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Affected evidence
+      description: Identify scores, proofs, renders, or prior records that may need invalidation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed correction
+      description: A fix, regression test, or smaller diagnostic is welcome but not required.

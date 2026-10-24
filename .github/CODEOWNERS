@@ -1,0 +1,13 @@
+# Scientific and execution trust boundaries require maintainer review.
+/AGENTS.md                     @Paureel
+/.github/                      @Paureel
+/LICENSE                       @Paureel
+/NOTICE                        @Paureel
+/licenses/                     @Paureel
+/benchmarks/                   @Paureel
+/src/warpproof/                 @Paureel
+/formal/                       @Paureel
+/records/registry.json         @Paureel
+/requirements.lock             @Paureel
+/pyproject.toml                @Paureel
+/scripts/                      @Paureel

@@ -1,0 +1,423 @@
+{
+  "schema_version": 1,
+  "benchmark": {
+    "id": "rodal-2c-v1-draft",
+    "version": "1-draft",
+    "metric_name": "rodal_irrotational_potential_with_axisymmetric_compact_perturbations",
+    "speed_c": 2.0,
+    "source": {
+      "id": "rodal-2025",
+      "title": "A warp drive with predominantly positive invariant energy density and global Hawking-Ellis Type I",
+      "author": "Jose Rodal",
+      "arxiv": "2512.18008v1",
+      "url": "https://arxiv.org/abs/2512.18008v1",
+      "doi": "10.1007/s10714-025-03495-x",
+      "equations": [
+        "14",
+        "36",
+        "40",
+        "42",
+        "43",
+        "58",
+        "59"
+      ],
+      "relationship": "Exact published metric family, standardized parameters; no claim of a global state-of-the-art minimum."
+    },
+    "units": {
+      "energy": "J",
+      "length": "m",
+      "time": "s",
+      "density": "J/m^3"
+    },
+    "coordinate_frame": "comoving q=(x_lab-2ct,y,z); ray times in SI seconds"
+  },
+  "candidate": {
+    "id": "search-example",
+    "parameter_hash": "c452fb7122782e6940d1cf61e716b39f171594625054c32d9def262b7548a088",
+    "parameters": {
+      "R_m": 20.0,
+      "sigma_per_m": 1.0,
+      "speed_c": 2.0,
+      "coefficients": [
+        {
+          "x_power": 1,
+          "transverse_power": 0,
+          "coefficient": "-1/10000"
+        },
+        {
+          "x_power": 1,
+          "transverse_power": 1,
+          "coefficient": "-1/10000"
+        },
+        {
+          "x_power": 3,
+          "transverse_power": 0,
+          "coefficient": "1/10000"
+        }
+      ]
+    }
+  },
+  "status": {
+    "formal": "not_implemented",
+    "formal_certification": false,
+    "numerical": "passed",
+    "evidence_level": "numerical_only",
+    "message": "Numerical diagnostics only. Global admissibility and a whole-space energy enclosure remain unproved; record promotion is disabled."
+  },
+  "energy": {
+    "quantity": "absolute_eulerian_source_energy",
+    "label": "Absolute Eulerian source energy",
+    "value_J": 4.248944992714964e+45,
+    "positive_J": 2.1244724963574843e+45,
+    "negative_J": 2.1244724963574798e+45,
+    "signed_J": 4.313035239779738e+30,
+    "body_absolute_J": 3.5113236254779694e+45,
+    "body_signed_J": 4.034185214460731e+44,
+    "body_positive_J": 1.9573710734620213e+45,
+    "body_negative_J": 1.553952552015948e+45,
+    "error_estimate_J": 8.451327706612105e+34,
+    "error_kind": "adaptive quadrature estimate plus analytic tail remainder; not a rigorous total enclosure",
+    "certified_bounds_J": null,
+    "tail": {
+      "start_m": 80.0,
+      "absolute_J": 7.376213672369948e+44,
+      "signed_J": -4.034185214460688e+44,
+      "analytic_remainder_bound_J": 2.5524321039501604e-07,
+      "formalized": false,
+      "floating_point_rounding_certified": false
+    },
+    "warnings": [],
+    "method": "axisymmetric angular polynomial root integration; adaptive radial quadrature; unchanged analytic tail",
+    "angular_max_relative_residual": 2.5066510924205706e-14
+  },
+  "diagnostics": {
+    "relative_energy_change": 2.0317280177445116e-13,
+    "quadrature_relative_tolerances": [
+      1e-08,
+      1e-10
+    ],
+    "angular_fit_degrees": [
+      10,
+      12
+    ],
+    "sampled_constraints": {
+      "passed_on_samples": true,
+      "continuum_admissibility_proved": false,
+      "checks": [
+        {
+          "quantity": "maximum_shift_norm",
+          "sampled_maximum": 2.0013475441472925,
+          "draft_limit": 4.0,
+          "sampled_pass": true
+        },
+        {
+          "quantity": "maximum_shift_jacobian_frobenius_per_m",
+          "sampled_maximum": 1.0023638985601588,
+          "draft_limit": 2.0,
+          "sampled_pass": true
+        },
+        {
+          "quantity": "maximum_shift_hessian_frobenius_per_m2",
+          "sampled_maximum": 0.7709569650631336,
+          "draft_limit": 4.0,
+          "sampled_pass": true
+        },
+        {
+          "quantity": "cabin_shift_norm",
+          "sampled_maximum": 4.122307219386983e-09,
+          "draft_limit": 1e-06,
+          "sampled_pass": true
+        }
+      ],
+      "samples": {
+        "radial_count": 209,
+        "angular_count": 49,
+        "maximum_radius_m": 80,
+        "third_derivative_step_m": 0.002,
+        "cabin_radial_count": 41,
+        "cabin_angular_count": 101
+      },
+      "limitations": "Finite samples and a finite-difference third derivative. Unsampled points, the infinite exterior, and rounding errors are not certified."
+    },
+    "independent_einstein_check": {
+      "method": "stationary_4d_metric_central_differences_christoffel_ricci_einstein",
+      "status": "numerical_only",
+      "formal_certification": false,
+      "units": "m^-2 before multiplying by c^4/(16*pi*G)",
+      "coordinate_order": [
+        "u=ct",
+        "x",
+        "y",
+        "z"
+      ],
+      "comparison": "2*G(n,n) versus the reduced Hessian invariant",
+      "checks": [
+        {
+          "point_m": [
+            17.0,
+            6.0,
+            8.0
+          ],
+          "reduced_invariant_per_m2": 0.09997948298122605,
+          "samples": [
+            {
+              "step_m": 0.02,
+              "direct_2Gnn_per_m2": 0.09997758751602365,
+              "absolute_residual_per_m2": 1.8954652024061325e-06,
+              "relative_residual": 1.8958541751631772e-05,
+              "metric_inverse_residual": 2.220446049250313e-16,
+              "normal_norm_residual": 0.0,
+              "ricci_symmetry_residual_per_m2": 3.3306690738754696e-16,
+              "metric_condition_number": 1.481971290168128
+            },
+            {
+              "step_m": 0.01,
+              "direct_2Gnn_per_m2": 0.09997900919820885,
+              "absolute_residual_per_m2": 4.737830172074631e-07,
+              "relative_residual": 4.738802433059482e-06,
+              "metric_inverse_residual": 2.220446049250313e-16,
+              "normal_norm_residual": 0.0,
+              "ricci_symmetry_residual_per_m2": 1.1102230246251565e-16,
+              "metric_condition_number": 1.481971290168128
+            },
+            {
+              "step_m": 0.005,
+              "direct_2Gnn_per_m2": 0.09997936454065876,
+              "absolute_residual_per_m2": 1.1844056729826136e-07,
+              "relative_residual": 1.1846487275844575e-06,
+              "metric_inverse_residual": 2.220446049250313e-16,
+              "normal_norm_residual": 0.0,
+              "ricci_symmetry_residual_per_m2": 1.1102230246251565e-16,
+              "metric_condition_number": 1.481971290168128
+            }
+          ],
+          "observed_error_orders": [
+            2.0002535801749963,
+            2.000063180215116
+          ],
+          "final_absolute_tolerance_per_m2": 1.0007948298122606e-05,
+          "relative_tolerance": 0.0001,
+          "absolute_tolerance_floor_per_m2": 1e-08,
+          "refinement_consistent": true,
+          "passed": true
+        },
+        {
+          "point_m": [
+            20.0,
+            5.0,
+            3.0
+          ],
+          "reduced_invariant_per_m2": 0.16075517208560353,
+          "samples": [
+            {
+              "step_m": 0.02,
+              "direct_2Gnn_per_m2": 0.16076007414937324,
+              "absolute_residual_per_m2": 4.9020637697128056e-06,
+              "relative_residual": 3.049397233143089e-05,
+              "metric_inverse_residual": 1.554615869453447e-16,
+              "normal_norm_residual": 1.1102230246251565e-16,
+              "ricci_symmetry_residual_per_m2": 2.220446049250313e-16,
+              "metric_condition_number": 8.685802469589175
+            },
+            {
+              "step_m": 0.01,
+              "direct_2Gnn_per_m2": 0.1607563979900147,
+              "absolute_residual_per_m2": 1.2259044111784245e-06,
+              "relative_residual": 7.625909606974386e-06,
+              "metric_inverse_residual": 1.554615869453447e-16,
+              "normal_norm_residual": 1.1102230246251565e-16,
+              "ricci_symmetry_residual_per_m2": 4.440892098500626e-16,
+              "metric_condition_number": 8.685802469589175
+            },
+            {
+              "step_m": 0.005,
+              "direct_2Gnn_per_m2": 0.160755478585717,
+              "absolute_residual_per_m2": 3.065001134838763e-07,
+              "relative_residual": 1.9066267635896799e-06,
+              "metric_inverse_residual": 1.554615869453447e-16,
+              "normal_norm_residual": 1.1102230246251565e-16,
+              "ricci_symmetry_residual_per_m2": 2.7755575615628914e-17,
+              "metric_condition_number": 8.685802469589175
+            }
+          ],
+          "observed_error_orders": [
+            1.9995427614498233,
+            1.9998869773363592
+          ],
+          "final_absolute_tolerance_per_m2": 1.6085517208560356e-05,
+          "relative_tolerance": 0.0001,
+          "absolute_tolerance_floor_per_m2": 1e-08,
+          "refinement_consistent": true,
+          "passed": true
+        },
+        {
+          "point_m": [
+            -18.0,
+            7.0,
+            2.0
+          ],
+          "reduced_invariant_per_m2": 0.05988545919628935,
+          "samples": [
+            {
+              "step_m": 0.02,
+              "direct_2Gnn_per_m2": 0.05988773528239186,
+              "absolute_residual_per_m2": 2.2760861025095114e-06,
+              "relative_residual": 3.800732486744534e-05,
+              "metric_inverse_residual": 2.220446049250313e-16,
+              "normal_norm_residual": 0.0,
+              "ricci_symmetry_residual_per_m2": 5.551115123125783e-17,
+              "metric_condition_number": 1.2134089357779245
+            },
+            {
+              "step_m": 0.01,
+              "direct_2Gnn_per_m2": 0.05988602834103058,
+              "absolute_residual_per_m2": 5.691447412317641e-07,
+              "relative_residual": 9.503888738103385e-06,
+              "metric_inverse_residual": 2.220446049250313e-16,
+              "normal_norm_residual": 0.0,
+              "ricci_symmetry_residual_per_m2": 5.551115123125783e-17,
+              "metric_condition_number": 1.2134089357779245
+            },
+            {
+              "step_m": 0.005,
+              "direct_2Gnn_per_m2": 0.05988560149015142,
+              "absolute_residual_per_m2": 1.4229386207514905e-07,
+              "relative_residual": 2.376100375364007e-06,
+              "metric_inverse_residual": 2.220446049250313e-16,
+              "normal_norm_residual": 0.0,
+              "ricci_symmetry_residual_per_m2": 1.1102230246251565e-16,
+              "metric_condition_number": 1.2134089357779245
+            }
+          ],
+          "observed_error_orders": [
+            1.9996876334376117,
+            1.9999221643675613
+          ],
+          "final_absolute_tolerance_per_m2": 5.998545919628935e-06,
+          "relative_tolerance": 0.0001,
+          "absolute_tolerance_floor_per_m2": 1e-08,
+          "refinement_consistent": true,
+          "passed": true
+        },
+        {
+          "point_m": [
+            4.0,
+            19.0,
+            5.0
+          ],
+          "reduced_invariant_per_m2": 0.003324049709409929,
+          "samples": [
+            {
+              "step_m": 0.02,
+              "direct_2Gnn_per_m2": 0.003322975138080686,
+              "absolute_residual_per_m2": 1.0745713292432436e-06,
+              "relative_residual": 0.00032327173874725144,
+              "metric_inverse_residual": 2.220446049250313e-16,
+              "normal_norm_residual": 0.0,
+              "ricci_symmetry_residual_per_m2": 6.938893903907228e-18,
+              "metric_condition_number": 1.0461930956229089
+            },
+            {
+              "step_m": 0.01,
+              "direct_2Gnn_per_m2": 0.0033237810410711604,
+              "absolute_residual_per_m2": 2.6866833876875926e-07,
+              "relative_residual": 8.082560799502967e-05,
+              "metric_inverse_residual": 2.220446049250313e-16,
+              "normal_norm_residual": 0.0,
+              "ricci_symmetry_residual_per_m2": 3.469446951953614e-18,
+              "metric_condition_number": 1.0461930956229089
+            },
+            {
+              "step_m": 0.005,
+              "direct_2Gnn_per_m2": 0.003323982540734262,
+              "absolute_residual_per_m2": 6.716867566704601e-08,
+              "relative_residual": 2.020688062422794e-05,
+              "metric_inverse_residual": 2.220446049250313e-16,
+              "normal_norm_residual": 0.0,
+              "ricci_symmetry_residual_per_m2": 3.469446951953614e-18,
+              "metric_condition_number": 1.0461930956229089
+            }
+          ],
+          "observed_error_orders": [
+            1.9998630289396497,
+            1.9999658275424328
+          ],
+          "final_absolute_tolerance_per_m2": 3.4240497094099296e-07,
+          "relative_tolerance": 0.0001,
+          "absolute_tolerance_floor_per_m2": 1e-08,
+          "refinement_consistent": true,
+          "passed": true
+        },
+        {
+          "point_m": [
+            28.0,
+            11.0,
+            3.0
+          ],
+          "reduced_invariant_per_m2": 0.0026862383885829415,
+          "samples": [
+            {
+              "step_m": 0.02,
+              "direct_2Gnn_per_m2": 0.002686240347284461,
+              "absolute_residual_per_m2": 1.9587015195540736e-09,
+              "relative_residual": 7.291614652962122e-07,
+              "metric_inverse_residual": 4.440892098500626e-16,
+              "normal_norm_residual": 2.220446049250313e-16,
+              "ricci_symmetry_residual_per_m2": 8.673617379884035e-19,
+              "metric_condition_number": 14.165933052607313
+            },
+            {
+              "step_m": 0.01,
+              "direct_2Gnn_per_m2": 0.0026862388782894295,
+              "absolute_residual_per_m2": 4.897064880340918e-10,
+              "relative_residual": 1.8230194688432858e-07,
+              "metric_inverse_residual": 4.440892098500626e-16,
+              "normal_norm_residual": 2.220446049250313e-16,
+              "ricci_symmetry_residual_per_m2": 8.673617379884035e-19,
+              "metric_condition_number": 14.165933052607313
+            },
+            {
+              "step_m": 0.005,
+              "direct_2Gnn_per_m2": 0.002686238510886988,
+              "absolute_residual_per_m2": 1.2230404666455086e-10,
+              "relative_residual": 4.552985586996593e-08,
+              "metric_inverse_residual": 4.440892098500626e-16,
+              "normal_norm_residual": 2.220446049250313e-16,
+              "ricci_symmetry_residual_per_m2": 8.673617379884035e-19,
+              "metric_condition_number": 14.165933052607313
+            }
+          ],
+          "observed_error_orders": [
+            1.999908351239011,
+            2.001445171188636
+          ],
+          "final_absolute_tolerance_per_m2": 2.786238388582942e-07,
+          "relative_tolerance": 0.0001,
+          "absolute_tolerance_floor_per_m2": 1e-08,
+          "refinement_consistent": true,
+          "passed": true
+        }
+      ],
+      "passed": true,
+      "limitations": [
+        "Finite metric samples and second-order finite differences are not a formal GR proof.",
+        "The reference and tensor route share the metric's profile and shift implementation.",
+        "The numerical thresholds are not certified error bounds or global admissibility tests."
+      ]
+    }
+  },
+  "provenance": {
+    "created_utc": "2026-10-23T22:07:01.541638+00:00",
+    "evaluator_version": "0.1.0",
+    "evaluator_source_sha256": "24a6a154679ef20caa7109128f1c4d33fe85124e9be25bc74e0632936941dde6",
+    "benchmark_sha256": "52445e98a20de0f2768c6c385ed1fdea80e39351b00eb685690ea358cd44bee9",
+    "candidate_canonical_sha256": "f6008ba105a440df27821cd803bb7a3e5aeb2fbbf5793fc6c8a6e6bffd0fd1e9",
+    "candidate_file_sha256": "462ef73dd991d3a9f8dea3f48256e4b5dd21d34b48bc47a330a53e7e1afe0bea",
+    "parameter_sha256": "c452fb7122782e6940d1cf61e716b39f171594625054c32d9def262b7548a088",
+    "python_version": "3.12.14",
+    "packages": {
+      "numpy": "2.3.5",
+      "scipy": "1.17.0"
+    }
+  }
+}

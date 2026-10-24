@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools==84.0.0", "wheel==0.48.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ad-astra"
+version = "0.1.0"
+description = "Ad Astra: reproducible, proof-oriented warp-geometry energy research"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE", "licenses/*.txt", "web/vendor/THREE-LICENSE.txt"]
+dependencies = ["numpy==2.3.5", "scipy==1.17.0"]
+
+[project.scripts]
+warpproof = "warpproof.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

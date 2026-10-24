@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "id": "rodal-reference-2c",
+  "benchmark": "rodal-2c-v1-draft",
+  "coefficients": [],
+  "description": "Unmodified Rodal irrotational metric family at beta=2, R=20 m and sigma=1/m. Standardized instance, not the paper's fiducial parameters."
+}

@@ -1,0 +1,35 @@
+name: Research task
+description: Propose or claim one concrete mathematical or implementation task.
+title: "[Task] "
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Concrete question
+      description: What single question will this task answer?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and dependencies
+      description: Link backlog IDs, papers, existing candidates, and related work.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance test
+      description: State the theorem, counterexample, numerical check, or artifact that would complete this task.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Planned scope and budget
+      description: Name likely files, expected effort, stopping criteria, and any overlap with ongoing work.
+  - type: textarea
+    id: handoff
+    attributes:
+      label: Smallest first step and blockers
+      description: Make it possible for another person or agent to continue.

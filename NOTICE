@@ -1,0 +1,33 @@
+Ad Astra
+Copyright 2026 Ad Astra contributors
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+Original bootstrap
+This project incorporates the MIT-licensed WarpProof bootstrap.
+Copyright (c) 2026 WarpProof bootstrap contributors
+The original copyright and permission notice is retained in
+licenses/WarpProof-bootstrap-MIT.txt. The original portions retain their
+MIT terms; the Ad Astra distribution and new contributions use Apache 2.0
+unless a file or dependency carries its own notice.
+
+Compact100 research sources
+The selected sources and inputs in research/compact100/upstream were supplied
+in warpproof-compact-energy-research.zip. They retain the original MIT license
+and copyright in research/compact100/upstream/LICENSE. The import manifest
+records the archive, source PDF and individual file hashes. New replay wrappers,
+independent checks and documentation use Apache 2.0.
+
+Three.js
+Copyright 2010-2025 three.js authors
+The vendored Three.js modules and OrbitControls retain their MIT license:
+web/vendor/THREE-LICENSE.txt (vendor/THREE-LICENSE.txt in the static viewer).
+The local OrbitControls modification is documented in web/vendor/README.md.
+
+Scientific data and references
+Stellar positions and magnitudes come from the ESA Hipparcos and Tycho
+Catalogues (1997, ESA SP-1200), accessed through NASA HEASARC.
+Catalogue provenance is recorded in web/stars.json (stars.json in the viewer).
+Other scientific sources and their uses are listed in SOURCES.json.
+The software license does not replace third-party data terms or imply
+endorsement by the cited authors or institutions.

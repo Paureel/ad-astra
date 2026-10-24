@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "benchmark": "rodal-2c-v1-draft",
+  "promotion_enabled": false,
+  "certified_records": [],
+  "reason": "The full geometry-to-energy and continuum certificate pipeline is not implemented. Numerical results are research artifacts only."
+}

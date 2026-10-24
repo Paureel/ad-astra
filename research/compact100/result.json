@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "status": "numerical_only",
+  "formal_certification": false,
+  "evidence_kind": "replayed_exact_continuum_enclosure_and_independent_numerical_audit",
+  "evaluated_utc": "2026-10-24T09:30:55.996908+00:00",
+  "runtime": {
+    "python": "3.12.14 (main, Sep 29 2026, 14:50:19) [Clang 22.1.3 ]",
+    "numpy": "2.3.5",
+    "scipy": "1.17.0"
+  },
+  "source_archive_sha256": "5bf4fce0fb82d7123e2ab9d772664d2678a95f75203cef3dd46312df9f2de9ff",
+  "candidate_sha256": "6c0cdb24b7e376f3670c294647f49c57420ded22f57b5083f00900c6da0eb041",
+  "upstream_manifest_sha256": "03fc4d8b5ebe343999fd6d752f2adbadb289f209a3279733f8facdd432ddceb9",
+  "model_source_sha256": "967e3bab34d325ce10ba6690228cc8df19286294d4e1f007f90ca0fbd30ef96d",
+  "runner_source_sha256": "8bf57daf801735e1fb2730908a065fb9a94e2f8903861e069c564faee82cd6ed",
+  "scenario": "compact100-research",
+  "original_v1_benchmark_eligible": false,
+  "full_main_core_and_reference_replayed": true,
+  "all_main_global_caps_pass": true,
+  "exact_cabin_and_C5_matching": true,
+  "energy_J_interval": [
+    "1544819357215180879497127716958390734820422830.52810082626524",
+    "1545308011844761380170062891620433385382930261.29675072808482"
+  ],
+  "energy_upper_exact": "165345065731648289979287801578205124459237080412874682296962570632906461228897229781008388788462696297981751441633367374313442146251657293127569689579948298958179536964946346585847585263/106998128828868410618883880230384120016515494684648025516112582738372875559865815157524996921550851571188452681068838912000000000000000000000",
+  "reference_energy_J_interval": [
+    "42490352523685739817554104220536292948305003119421/10000",
+    "21255630503505239887501894062671207858743998338139/5000"
+  ],
+  "guaranteed_saving_percent": {
+    "lower": "63.63155586945653428211127051887862519002",
+    "upper": "63.63155586945653428211127051887862519003"
+  },
+  "conditional_compact_class_floor_J": {
+    "lower": "7.786767224853438160785650224544388192530E+44",
+    "upper": "7.786767224853438160785650224544422284365E+44"
+  },
+  "upper_over_class_infimum_ceiling": {
+    "lower": "1.984530893529884643422619553445685543779",
+    "upper": "1.984530893529884643422619553445694232404"
+  },
+  "conditional_necessary_radius_m": {
+    "10": {
+      "lower": "482.4155916638365989675454790223210505429",
+      "upper": "482.4155916638365989675460001461069589504"
+    },
+    "100": {
+      "lower": "305672731287163763.4375207098690662732109",
+      "upper": "305672731287163763.4375210078922901501641"
+    }
+  },
+  "base_cells": 1040,
+  "cap_checks": 3120,
+  "energy_cells": 45020,
+  "core_energy_upper_J": "18666090342413011901027932068387549320561465466357/250000000000000000000",
+  "independent_energy_refinement": [
+    {
+      "radial_gauss_order": 16,
+      "angular_gauss_order": 20,
+      "absolute_energy_J": 1.5448625657862512e+45,
+      "signed_energy_J": 3.583415223666268e+29,
+      "absolute_polynomial_integral": 102.11810538584982,
+      "signed_polynomial_integral": 2.368699854315981e-14
+    },
+    {
+      "radial_gauss_order": 28,
+      "angular_gauss_order": 32,
+      "absolute_energy_J": 1.544868613989677e+45,
+      "signed_energy_J": 4.880355859923851e+29,
+      "absolute_polynomial_integral": 102.1185051826269,
+      "signed_polynomial_integral": 3.226000196143719e-14
+    },
+    {
+      "radial_gauss_order": 40,
+      "angular_gauss_order": 48,
+      "absolute_energy_J": 1.5448690999203075e+45,
+      "signed_energy_J": 1.200257280904437e+30,
+      "absolute_polynomial_integral": 102.11853730348764,
+      "signed_polynomial_integral": 7.933909605684075e-14
+    }
+  ],
+  "replay_commands": [
+    {
+      "name": "cartesian",
+      "python_arguments": [
+        "research/radical_compact/tensor_cartesian_audit.py",
+        "research/radical_compact/global_search/tensor-polished-candidate.json",
+        "--receipt",
+        "research/radical_compact/tensor_validation/tensor-polished-final-verified.json"
+      ],
+      "exit_code": 0,
+      "log_sha256": "f88e25e7698af2da4111cf719a00ee72b03c382269cef6251380c8177babd1f0"
+    },
+    {
+      "name": "symbolic",
+      "python_arguments": [
+        "research/radical_compact/variational_physics/tensor_identity_audit.py"
+      ],
+      "exit_code": 0,
+      "log_sha256": "5a3d47a600a4a1925e53fcdbafb928da0c73b0ae3d1f81b06dd440c2c18aedc3"
+    },
+    {
+      "name": "clipped-log",
+      "python_arguments": [
+        "research/radical_compact/variational_physics/clipped_log_bound.py"
+      ],
+      "exit_code": 0,
+      "log_sha256": "ea493c3be225978fa867fe1e7c968898ae19beb6c2045067e300aba8d4132af1"
+    },
+    {
+      "name": "radius",
+      "python_arguments": [
+        "research/radical_compact/variational_physics/radius_scaling.py"
+      ],
+      "exit_code": 0,
+      "log_sha256": "20dd0f093f26460262f0110e65573057f1f68133b6fd29f14d3973f40870cb25"
+    },
+    {
+      "name": "tail-bound",
+      "python_arguments": [
+        "research/radical_compact/variational_physics/conditional_tail_bound.py"
+      ],
+      "exit_code": 0,
+      "log_sha256": "a83f9fe533df48aa522608c43d47427703bc222895f53ba3f2fbc62c378c7763"
+    },
+    {
+      "name": "main",
+      "python_arguments": [
+        "research/radical_compact/tensor_validation/bernstein_replay.py",
+        "research/radical_compact/global_search/tensor-polished-candidate.json",
+        "--tolerance",
+        "1/20",
+        "--name",
+        "local-replay"
+      ],
+      "exit_code": 0,
+      "log_sha256": "1e14727b873948d41d1f838fd2262854ff62dd15c14651df705c9bd9dd6f4ee3"
+    },
+    {
+      "name": "core",
+      "python_arguments": [
+        "research/expanded_family/radial_control/log_cylinder_caps.py",
+        "9"
+      ],
+      "exit_code": 0,
+      "log_sha256": "1a2bf33a0ab711c2b38e96a66d356de0096910a13d6e62e1578cfd9d73f1553e"
+    },
+    {
+      "name": "reference",
+      "python_arguments": [
+        "research/deep_strict/validated_math/enclose_frozen.py",
+        "11",
+        "10"
+      ],
+      "exit_code": 0,
+      "log_sha256": "ff5f3a413d7dc6c1c69dabd26a47cb13d4e96b370bfcca2fd7a7e1c4e77d3c52"
+    }
+  ],
+  "mathematical_digest": "07f87d607f6612049afc985cd445c83347ace6b30227034112a09691e6758b61",
+  "limitations": [
+    "Ordinary computer-assisted interval/rational verification; no formal Lean GR certificate.",
+    "A broader shape family and redesigned exterior, not an entry in the unchanged v1 benchmark.",
+    "Peak stress and curvature are separate sampled diagnostics, not certified extrema.",
+    "No material source, startup, stability, causal control, or physical propulsion demonstration."
+  ]
+}

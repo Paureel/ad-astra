@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "Cite the selected published geometry and the exact repository revision used. This bootstrap has no DOI."
+title: "Ad Astra: a fixed 2c source-energy challenge"
+version: 0.1.0
+type: software
+license: Apache-2.0
+authors:
+  - name: "Ad Astra contributors"
+repository-code: "https://github.com/Paureel/ad-astra"
+abstract: >-
+  A numerical and scoped Lean-proof bootstrap for a frozen superluminal
+  warp-geometry source-energy optimization benchmark. Formal promotion is
+  disabled until the complete continuum proof chain is implemented.
+references:
+  - type: article
+    title: "A warp drive with predominantly positive invariant energy density and global Hawking-Ellis Type I"
+    authors:
+      - family-names: Rodal
+        given-names: Jose
+    journal: General Relativity and Gravitation
+    volume: '58'
+    year: 2026
+    doi: 10.1007/s10714-025-03495-x
+    url: https://arxiv.org/abs/2512.18008v1

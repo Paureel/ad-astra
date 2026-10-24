@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "id": "search-example",
+  "benchmark": "rodal-2c-v1-draft",
+  "coefficients": [
+    {
+      "x_power": 1,
+      "transverse_power": 0,
+      "coefficient": "-1/10000"
+    },
+    {
+      "x_power": 1,
+      "transverse_power": 1,
+      "coefficient": "-1/10000"
+    },
+    {
+      "x_power": 3,
+      "transverse_power": 0,
+      "coefficient": "1/10000"
+    }
+  ],
+  "description": "Deterministic exploratory coordinate search. Numerical estimate only; global admissibility and certified improvement have not been proved."
+}

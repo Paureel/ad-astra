@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "source": {
+    "id": "rodal-2025",
+    "title": "A warp drive with predominantly positive invariant energy density and global Hawking-Ellis Type I",
+    "author": "Jose Rodal",
+    "arxiv": "2512.18008v1",
+    "url": "https://arxiv.org/abs/2512.18008v1",
+    "doi": "10.1007/s10714-025-03495-x",
+    "equations": [
+      "14",
+      "36",
+      "40",
+      "42",
+      "43",
+      "58",
+      "59"
+    ],
+    "relationship": "Exact published metric family, standardized parameters; no claim of a global state-of-the-art minimum."
+  },
+  "fixture": {
+    "table": 6,
+    "profile_radius_m": 5,
+    "sigma_per_m": 4,
+    "speed_c": 1,
+    "finite_integration_radius_m": 60
+  },
+  "published_rounded_values": {
+    "positive_J": 1.29e+44,
+    "negative_J": 1.21e+44,
+    "absolute_J": 2.5e+44,
+    "signed_J": 8.37e+42
+  },
+  "reproduced_finite_domain_values": {
+    "positive_J": 1.293337361262199e+44,
+    "negative_J": 1.2092918359609386e+44,
+    "absolute_J": 2.5026291972231376e+44,
+    "signed_J": 8.404552530126067e+42
+  },
+  "relative_differences": {
+    "positive_J": 0.00258710175364274,
+    "negative_J": 0.0005852595364143065,
+    "absolute_J": 0.0010516788892551698,
+    "signed_J": 0.004128139800007924
+  },
+  "comparison_tolerance": 0.005,
+  "comparison_passed": true,
+  "whole_space_absolute_energy_J": 2.6563003153975114e+44,
+  "whole_space_tail_J": 1.5367111817437393e+43,
+  "standardized_2c_absolute_energy_J": 4.250080504636023e+45,
+  "scale_factor_from_original_whole_space": 16.000000000000018,
+  "formal_certification": false,
+  "interpretation": "Reproduction of rounded finite-domain figures, with a separately derived exterior-tail correction. The standardized 2c score is this repository's calculation, not a number claimed by the paper.",
+  "provenance": {
+    "created_utc": "2026-10-23T22:06:31.029469+00:00",
+    "evaluator_version": "0.1.0",
+    "evaluator_source_sha256": "24a6a154679ef20caa7109128f1c4d33fe85124e9be25bc74e0632936941dde6",
+    "benchmark_sha256": "52445e98a20de0f2768c6c385ed1fdea80e39351b00eb685690ea358cd44bee9",
+    "candidate_canonical_sha256": "8b0d0cf16e7987cc9417bc458924cf3ac1a5f3b597d66ec20b188e7e36960c26",
+    "candidate_file_sha256": "8b2c3d5a7226fb659a7f32d84343c541119fd71bbdf0c4830b00864a5301db3b",
+    "parameter_sha256": "e160fceec60b6df86fc951c77286606064a39344eec0d739c340144cf6e71e60",
+    "python_version": "3.12.14",
+    "packages": {
+      "numpy": "2.3.5",
+      "scipy": "1.17.0"
+    }
+  }
+}

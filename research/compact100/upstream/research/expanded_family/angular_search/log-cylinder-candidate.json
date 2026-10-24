@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "id": "log-cylinder-t1000",
+  "status": "numerical_only",
+  "contract": "rodal-2c-free-exterior-research",
+  "speed_c": "2",
+  "inner_cylinder_radius_m": "12",
+  "axial_positive_breaks_m": [
+    "0",
+    "12",
+    "24",
+    "36",
+    "48"
+  ],
+  "axial_parity": "odd",
+  "axial_piece_coefficients_in_local_t": [
+    [
+      "0",
+      "12"
+    ],
+    [
+      "12",
+      "12",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "-1386",
+      "10395/2",
+      "-8085",
+      "6468",
+      "-2646",
+      "441"
+    ],
+    [
+      "27/2",
+      "-9"
+    ],
+    [
+      "9/2",
+      "-9",
+      "0",
+      "0",
+      "0",
+      "0",
+      "0",
+      "594",
+      "-4455/2",
+      "3465",
+      "-2772",
+      "1134",
+      "-189"
+    ]
+  ],
+  "axial_local_coordinates": "t=(x-left)/12 on each positive interval; odd extension to negative x; zero for abs(x)>=48",
+  "smootherstep_power_coefficients": [
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "462",
+    "-1980",
+    "3465",
+    "-3080",
+    "1386",
+    "-252"
+  ],
+  "logarithmic_extent_T": "1000",
+  "parameter_family_domain": "Every finite real T>=10; the frozen candidate uses exact rational T=1000.",
+  "transverse_definition": "g=1 for rho<=12; g=1-S(log(rho/12)/T) for 12<rho<12*exp(T); g=0 beyond",
+  "main_potential": "Phi_main=2*x-2*f(x)*g(sqrt(y*y+z*z))",
+  "core_correction": "Phi_core=eta(r)*Phi0(r,x); eta=1 for r<=10; eta=1-S(r-10) for 10<r<11; eta=0 for r>=11",
+  "core_cutoff": {
+    "inner_radius_m": "10",
+    "outer_radius_m": "11",
+    "normalized_coordinate": "t=r-10",
+    "profile": "eta=1-S(t)",
+    "reference": "Original rodal-2c-v1-draft Phi0=2*x*g0(r)"
+  },
+  "total_potential": "Phi=Phi_main+Phi_core",
+  "outer_transverse_radius_m_expression": "12*exp(1000)",
+  "regularity": "Main potential C6 axially and C5 transversely; total potential C5 and metric C4.",
+  "scope": "Exact original core retained; all-space energy; fixed speed and caps; exterior redesigned under user authorization; no formal promotion or physical fuel claim.",
+  "contract_sha256": "c5ceac307000cb0f332a737347dec8bd2f3af5c3872e2f120ca97e57b78cdbb3"
+}
