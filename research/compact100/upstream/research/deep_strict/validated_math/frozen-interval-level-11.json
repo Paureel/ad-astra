@@ -1,0 +1,33 @@
+{
+  "status": "numerical_only",
+  "evidence_kind": "computer_assisted_interval_enclosure",
+  "formal_certification": false,
+  "benchmark_id": "rodal-2c-v1-draft",
+  "benchmark_canonical_sha256": "52445e98a20de0f2768c6c385ed1fdea80e39351b00eb685690ea358cd44bee9",
+  "candidate_sha256": "1aa50dd2e5dd4b9f44fe8e93d3558df0cd6b9c93d990749bed52f687e7cc176d",
+  "verifier_sha256": "dbff7a0d37ef58735f1e9258ce5d6c08d7beb74b7a973fa80ddb92fe72bd81e5",
+  "imported_interval_primitives_sha256": "09f847537a935ca437bfd41fb72df57b7752a8a3f5c80a948bf705df0a1d981e",
+  "radial_cells": 122880,
+  "radial_level": 11,
+  "angular_depth": 10,
+  "precision_decimal_digits": 50,
+  "baseline_energy_J_interval": [
+    "4249035252368573981755410422053629294830500311.9421",
+    "4251126100701047977500378812534241571748799667.6278"
+  ],
+  "candidate_energy_J_interval": [
+    "4229605086198051144747683492433607308920404521.5548",
+    "4232960648203351822911882788333294806450644836.7137"
+  ],
+  "improvement_J_interval": [
+    "16074604165349264834907923514110986446987358.164902",
+    "21521014502869726761315030306857764761263263.136494"
+  ],
+  "reduction_fraction_interval": [
+    "0.00378311856938856005729256778803958112525378506263",
+    "0.0050624267531014496879285089270549327597441336267001"
+  ],
+  "strict_energy_improvement_established": true,
+  "scope": "Frozen candidate and benchmark unchanged. Outward intervals under analytic continuum identities. Global cap proof remains in the existing separate note. No formal GR or Lean certification.",
+  "elapsed_seconds": 261.37547063827515
+}

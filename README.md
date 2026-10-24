@@ -11,6 +11,11 @@ there are no formally certified candidates or demonstrated propulsion systems.
 The dashed timeline segment connects the original 1c publication to the 2c
 benchmark; their different parameters do not establish an improvement.
 
+The separate [compact100 research candidate](research/compact100/README.md)
+replays to **1.54482–1.54531 × 10⁴⁵ J**, at least **63.63% below the Rodal 2c
+reference**, using a broader family and a redesigned 100 m exterior. It is not
+an entry in the unchanged benchmark or the viewer above.
+
 ## Run locally
 
 The viewer needs Node 18+ and includes saved results. No npm install is needed.

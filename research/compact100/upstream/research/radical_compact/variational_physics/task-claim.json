@@ -1,0 +1,13 @@
+{
+  "tasks": ["WP-002", "WP-004", "WP-005"],
+  "starting_git_commit": null,
+  "reason_no_git_commit": "The supplied source archive has no Git history.",
+  "phase": "User-authorized Phase 2 after the saved Phase 1 report",
+  "question": "Strengthen full-class variational lower bounds for exactly compact R100 gradient-shift geometries and determine whether a tenfold reduction remains possible.",
+  "owned_files": "New files under research/radical_compact/variational_physics/ only.",
+  "retained_scope": "Stationary unit-lapse Euclidean-slice gradient metric, beta2, exact reference core through10m, potential C5, global norm caps4/2/4, absolute Eulerian energy over allspace, exactly constant shift outside100m.",
+  "acceptance": "A stated analytic theorem, exact arithmetic replay bound to the protected benchmark and reference evidence, independent mathematical checks, and explicit construction implications without a novelty or formal-certification claim.",
+  "protected_benchmark_sha256": "dec6cdcc48e234a581dc1068f3c3bee62c73c41f14ac10c37908f5d85d6cd3e4",
+  "formal_certification": false,
+  "starting_localized_contract_sha256": "179c10116855ff2ac2b40eb6bdc03b2d7504466a9241bd941b8793375c12521e"
+}

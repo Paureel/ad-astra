@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "status": "numerical_only",
+  "certified_extrema": false,
+  "candidate_sha256": "6c0cdb24b7e376f3670c294647f49c57420ded22f57b5083f00900c6da0eb041",
+  "script_sha256": "348eef004099e2a2c2ee35d9fe1364e1a22daf122a319bf415e70c0559a32817",
+  "candidate_jet_source_sha256": "c6a5cf79044b4bd4fe4b173f32e487fd4c9ecfd5678f9ccbd7f54a891b5ab011",
+  "grid": {
+    "radial_nodes": 4001,
+    "angular_nodes": 812,
+    "domain": "11<=r<=100; full sphere"
+  },
+  "maxima": {
+    "candidate": {
+      "absolute_density": {
+        "value_per_m2": 0.9601491468417054,
+        "r_m": 13.34,
+        "mu": 1.0
+      },
+      "negative_density": {
+        "value_per_m2": 0.0019265665325145231,
+        "r_m": 14.205,
+        "mu": -1.0
+      },
+      "principal_stress": {
+        "value_per_m2": 9.152607065316362,
+        "r_m": 13.655,
+        "mu": -1.0
+      },
+      "tidal": {
+        "value_per_m2": 9.278578568165608,
+        "r_m": 13.64,
+        "mu": -1.0
+      },
+      "NEC_deficit": {
+        "value_per_m2": 6.432163820486268,
+        "r_m": 13.055,
+        "mu": -1.0
+      },
+      "absolute_Ricci_scalar": {
+        "value_per_m2": 17.973548593615735,
+        "r_m": 13.67,
+        "mu": -1.0
+      }
+    },
+    "reference": {
+      "absolute_density": {
+        "value_per_m2": 0.11574952495590368,
+        "r_m": 20.34,
+        "mu": -1.0
+      },
+      "negative_density": {
+        "value_per_m2": 0.006729963820550923,
+        "r_m": 21.56,
+        "mu": 0.0
+      },
+      "principal_stress": {
+        "value_per_m2": 1.304535647235806,
+        "r_m": 19.78,
+        "mu": -1.0
+      },
+      "tidal": {
+        "value_per_m2": 1.232449875458844,
+        "r_m": 19.765,
+        "mu": -1.0
+      },
+      "NEC_deficit": {
+        "value_per_m2": 1.2306938713702298,
+        "r_m": 19.765,
+        "mu": -1.0
+      },
+      "absolute_Ricci_scalar": {
+        "value_per_m2": 2.759494800382127,
+        "r_m": 19.795,
+        "mu": -1.0
+      }
+    }
+  },
+  "candidate_to_reference_peak_ratios": {
+    "absolute_density": 8.295059070069506,
+    "negative_density": 0.2862669969534565,
+    "principal_stress": 7.015988474297283,
+    "tidal": 7.528564652344317,
+    "NEC_deficit": 5.2264531173173285,
+    "absolute_Ricci_scalar": 6.513347512423945
+  },
+  "scope": "Same mesh for both models. Density/stress entries are Einstein-tensor quantities; SI stress multiplies by c^4/(8pi G), and tidal acceleration by c^2. Exterior of the candidate is exactly flat, but the mesh peaks are not certified global extrema."
+}

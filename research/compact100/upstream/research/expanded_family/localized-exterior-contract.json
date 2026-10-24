@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "id": "rodal-2c-localized-exterior-research",
+  "status": "draft_research_contract",
+  "parent_benchmark": "rodal-2c-v1-draft",
+  "parent_raw_sha256": "dec6cdcc48e234a581dc1068f3c3bee62c73c41f14ac10c37908f5d85d6cd3e4",
+  "authorization": "The user removed the original decoder and coefficient limits, then exact exterior matching, and subsequently required a realistic localized exterior suitable for a ship, comparable to the original paper rather than an enormous delocalized disturbance.",
+  "latest_user_instruction": "but the outer exterior must be kept realistic, so physically it must be feasible to put a ship there and it wont break the universe verywhere, just like in the original paper",
+  "supersedes_for_user_goal": "The unrestricted-extent log-cylinder result under rodal-2c-free-exterior-research is retained only as a mathematical diagnostic. Its enormous exterior does not meet the clarified localization requirement.",
+  "retained": {
+    "theory": "Classical general relativity with zero cosmological constant",
+    "constants": {"c_m_s": "299792458", "G_m3_kg_s2": "66743/1000000000000000"},
+    "speed_c": "2",
+    "metric": "ds^2=-du^2+|dq+grad(Phi)du|^2; u=ct; unit lapse and Euclidean spatial slices",
+    "core": "Phi and required derivatives agree exactly with Phi0=2*x*g0(r) on r<=10m",
+    "reference_profile": "R=20m, sigma=1/m, g0(r)=integral_0^r(1-F(s))ds/r",
+    "asymptotic_frame": "grad(Phi) tends to2*e_x at spatial infinity",
+    "regularity": "Phi is C5 and metric C4",
+    "observer": "n=(1,-grad(Phi))",
+    "objective": "Finite E_abs=integral_R3 |T(n,n)| d^3q, including the entire redesigned exterior",
+    "density": "rho_E=c^4/(16*pi*G)*((Delta Phi)^2-|Hess Phi|_F^2)",
+    "maximum_shift_norm": "4",
+    "maximum_shift_jacobian_frobenius_per_m": "2",
+    "maximum_shift_hessian_frobenius_per_m2": "4",
+    "cabin_maximum_shift_norm": "1/1000000"
+  },
+  "localization_policy": {
+    "primary_reference_comparable_tail": "For r>=40m, prove pointwise norms of W-2*e_x, DW and D2W no greater than those of the original reference at the same point. The exterior may change and its energy is still counted.",
+    "compact_comparison_scenarios": "Separately report exactly uniform exterior W=2*e_x outside a stated ball. Explore outer radii40m,80m and100m as transparent comparison scenarios, not as user-specified engineering requirements. All retained global and cabin bounds apply.",
+    "reporting": "Every candidate must state its localization scenario, exterior extent or tail coefficient, and complete energy accounting. An unbounded-extent limit is not an acceptable ship-scale result.",
+    "stress_and_curvature": "Evaluate source stresses and curvature in addition to the Eulerian-density objective, compare with the reference, and report material increases. The original paper does not supply a realizable material source; no new engineering-feasibility claim is authorized by geometric checks alone."
+  },
+  "representation_policy": "No original nine-coefficient or coefficient-magnitude restriction. Exact rational candidate data, fixed decoders, independently reviewable evaluators and proofs are separate files. The original benchmark and records are not rewritten.",
+  "formal_certification": false,
+  "promotion_enabled": false,
+  "physical_scope": "A prescribed localized spacetime comparable to the original model is the mathematical target. Startup, propulsion hardware, material realization and quantum consistency remain outside the demonstrated results."
+}

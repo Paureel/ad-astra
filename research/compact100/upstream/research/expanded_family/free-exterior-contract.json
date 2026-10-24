@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "id": "rodal-2c-free-exterior-research",
+  "status": "draft_research_contract",
+  "authorization_history": [
+    {
+      "date": "2026-10-24",
+      "instruction": "The original nine-coefficient decoder and coefficient limits. drop this requirement, and push forward with novel ideas",
+      "effect": "Remove the nine-dimensional representation and coefficient magnitude limits."
+    },
+    {
+      "date": "2026-10-24",
+      "instruction": "ok remove also the exterior requirement",
+      "effect": "Remove exact matching to the reference exterior at r>=40m and the associated perturbation support restriction."
+    }
+  ],
+  "parent_benchmark": "rodal-2c-v1-draft",
+  "parent_raw_sha256": "dec6cdcc48e234a581dc1068f3c3bee62c73c41f14ac10c37908f5d85d6cd3e4",
+  "first_relaxation_contract": "rodal-2c-expanded-family-research",
+  "changed": [
+    "No restriction to the nine original polynomial coefficients",
+    "No bound of 1/10 on representation coefficients",
+    "No requirement to preserve the original reference potential outside40m",
+    "No fixed exterior radius, transition extent or exterior decay profile"
+  ],
+  "retained": {
+    "theory": "Classical general relativity with zero cosmological constant",
+    "constants": {"c_m_s": "299792458", "G_m3_kg_s2": "66743/1000000000000000"},
+    "speed_c": "2",
+    "reference_profile_radius_m": "20",
+    "reference_sigma_per_m": "1",
+    "metric": "ds^2=-du^2+|dq+grad(Phi)du|^2; u=ct; unit lapse and Euclidean spatial slices",
+    "core": "Phi and its required derivatives agree exactly with Phi0=2*x*g0(r) on r<=10m",
+    "asymptotic_frame": "grad(Phi) tends to2*e_x at spatial infinity, giving the original stationary comoving-to-asymptotic frame relation",
+    "regularity": "Phi is C5 and the metric C4",
+    "observer": "n=(1,-grad(Phi))",
+    "objective": "E_abs=integral_R3 |T(n,n)| d^3q, finite and counting the entire redesigned exterior",
+    "density": "rho_E=c^4/(16*pi*G)*((Delta Phi)^2-|Hess Phi|_F^2)",
+    "maximum_shift_norm": "4",
+    "maximum_shift_jacobian_frobenius_per_m": "2",
+    "maximum_shift_hessian_frobenius_per_m2": "4",
+    "cabin_maximum_shift_norm": "1/1000000"
+  },
+  "extent_policy": "Every candidate must define its entire spatial geometry. No finite common bound on its exterior extent is imposed. An arbitrarily large support is a cost of a candidate, and is reported explicitly.",
+  "representation_policy": "Candidates are fixed data, using exact rational parameters and elementary functions where applicable. Candidate data, evaluator, proof argument and evidence are separately inspectable. Original records remain unchanged.",
+  "comparison_scope": "Comparisons concern the same energy functional and reference instance, in an explicitly enlarged admissible class. They do not contradict lower bounds whose hypotheses include the original decoder or exterior.",
+  "formal_certification": false,
+  "promotion_enabled": false,
+  "physical_scope": "Prescribed stationary spacetime and its Einstein source. This contract makes no claim about material realization, formation energy, propulsion fuel, acceleration, quantum consistency, or the integral of all stresses."
+}

@@ -11,6 +11,13 @@ licenses/WarpProof-bootstrap-MIT.txt. The original portions retain their
 MIT terms; the Ad Astra distribution and new contributions use Apache 2.0
 unless a file or dependency carries its own notice.
 
+Compact100 research sources
+The selected sources and inputs in research/compact100/upstream were supplied
+in warpproof-compact-energy-research.zip. They retain the original MIT license
+and copyright in research/compact100/upstream/LICENSE. The import manifest
+records the archive, source PDF and individual file hashes. New replay wrappers,
+independent checks and documentation use Apache 2.0.
+
 Three.js
 Copyright 2010-2025 three.js authors
 The vendored Three.js modules and OrbitControls retain their MIT license:
