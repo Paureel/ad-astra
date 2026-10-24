@@ -1,51 +1,19 @@
-## Claim and scope
+## Change
 
-What concrete mathematical, numerical, or tooling result does this PR establish?
-Link the task or issue. State whether this is a candidate, a proof, an audit, an
-optimizer, a viewer change, or a benchmark-version proposal.
+What problem does this solve, and what changes? Link the issue or backlog task.
 
-## Provenance
+## Validation
 
-- Starting commit:
-- Benchmark identifier:
-- Candidate path and digest, if applicable:
-- Papers, predecessor candidates, and reused evidence:
-- Contributor and substantial AI assistance credits:
+List commands actually run and their outcomes, plus relevant checks not run.
+For a visible change, include a screenshot or local preview notes.
 
-## Evidence
+## Scientific evidence (when applicable)
 
-List the commands actually run and their outcomes. Include precision,
-refinement settings, and environment where relevant. List commands not run.
+Give the benchmark, starting commit, exact candidate/input, reproduction commands,
+and remaining uncertainty or proof obligations. Identify any change to the
+evaluator, benchmark, formal gate, or workflow. Omit this section for other work.
 
-```text
-command:
-outcome:
-```
+## Credit
 
-## Mathematical obligations
-
-- Exact theorem or numerical claim:
-- Continuous constraints established:
-- Error bounds established:
-- Assumptions and axiom dependencies:
-- Remaining obligations and limitations:
-
-## Changes affecting evaluation
-
-Identify changes to the benchmark, evaluator, admission rules, formal checker,
-dependencies, or workflow. Explain which earlier evidence must be regenerated.
-An objective or constraint change requires a new benchmark version.
-
-## Review checklist
-
-- [ ] Reported numbers were generated from the submitted candidate.
-- [ ] Numerical agreement is not labelled a formal certificate.
-- [ ] No required obligation was replaced with a successful placeholder.
-- [ ] Proof-relevant inputs and their versions are identified.
-- [ ] Remaining obligations and unrun checks are explicit.
-- [ ] Prior work and contributors are credited.
-
-## Next useful question
-
-State the next small task, why it matters, and any blocker. “None identified” is
-acceptable when justified.
+Credit prior work and substantial AI assistance. Contributions use Apache 2.0;
+preserve the notices for any reused material.

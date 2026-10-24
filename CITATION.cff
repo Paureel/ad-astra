@@ -3,7 +3,7 @@ message: "Cite the selected published geometry and the exact repository revision
 title: "Ad Astra: a fixed 2c source-energy challenge"
 version: 0.1.0
 type: software
-license: MIT
+license: Apache-2.0
 authors:
   - name: "Ad Astra contributors"
 repository-code: "https://github.com/Paureel/ad-astra"

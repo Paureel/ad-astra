@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="330" viewBox="0 0 1000 330" role="img" aria-labelledby="title description">
+<title id="title">Ad Astra energy timeline</title>
+<desc id="description">Publication and contributor energy values on logarithmic axes. Time uses log10(1 + elapsed UTC hours), in one-hour bins. A dashed line distinguishes the original 1c publication from the fixed 2c benchmark. All results are numerical, not certified.</desc>
+<metadata>{&quot;license&quot;:&quot;Apache-2.0&quot;,&quot;generator&quot;:&quot;scripts/build-timeline.mjs&quot;,&quot;inputs&quot;:{&quot;records/history.json&quot;:&quot;521b25286bfb12e45433adb21b2ba420bdab238d761f6ea21266339ef95a8047&quot;,&quot;results/baseline.json&quot;:&quot;d5ed398b5cb6c95f00205c1021b2d87787c88d878664ef8cda68502b0e460b5e&quot;,&quot;results/search-example.json&quot;:&quot;d20ae21e2c187ba8cca0f4125d1211f0312a6e499f0169d28cba06a36fc3ab47&quot;},&quot;records&quot;:[{&quot;author&quot;:&quot;Rodal&quot;,&quot;timestamp&quot;:&quot;2025-12-17&quot;,&quot;energy_J&quot;:2.66e+44,&quot;kind&quot;:&quot;publication&quot;,&quot;digits&quot;:3,&quot;context&quot;:&quot;1c publication&quot;},{&quot;author&quot;:&quot;Rodal&quot;,&quot;timestamp&quot;:&quot;2026-10-23T22:06:31.160746+00:00&quot;,&quot;energy_J&quot;:4.2500805046360227e+45,&quot;kind&quot;:&quot;benchmark_reference&quot;,&quot;digits&quot;:10,&quot;context&quot;:&quot;2c reference&quot;},{&quot;author&quot;:&quot;Paureel&quot;,&quot;timestamp&quot;:&quot;2026-10-23T22:07:01.541638+00:00&quot;,&quot;energy_J&quot;:4.248944992714964e+45,&quot;kind&quot;:&quot;repository_evaluation&quot;,&quot;digits&quot;:10,&quot;context&quot;:&quot;2c&quot;}]}</metadata>
+<style>text{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;fill:#b6c6e1}.heading{font-family:system-ui,sans-serif;font-size:15px;fill:#e3edff}.meta{font-size:10px;fill:#94a9cd}.tick{font-size:10px}.hour{font-size:9px;fill:#91a6cb}.energy{font-size:13px;fill:#e4eeff}.author{font-size:11px;fill:#aabddc}.grid{stroke:#708bb0;stroke-opacity:.16;stroke-dasharray:2 6;fill:none}.axis{stroke:#657fa5;stroke-opacity:.65;fill:none}.literature-link{stroke:#c3ac90;stroke-width:1.5;stroke-dasharray:5 6;fill:none}.evaluation-link{stroke:#9cbeef;stroke-width:1.5;fill:none}.leader{stroke:#829dc3;stroke-opacity:.5;fill:none}</style>
+<rect width="1000" height="330" rx="12" fill="#0b1426"/>
+<text x="28" y="30" class="heading">Energy history</text>
+<text x="972" y="30" text-anchor="end" class="meta">Numerical only · UTC · 1 h bins · log/log</text>
+<text x="66" y="46" text-anchor="end" class="tick">J</text>
+<path d="M78,232H962" class="grid"/>
+<text x="66" y="236" text-anchor="end" class="tick">1 × 10⁴⁴</text>
+<path d="M78,205.50936038156965H962" class="grid"/>
+<text x="66" y="209.50936038156965" text-anchor="end" class="tick">2 × 10⁴⁴</text>
+<path d="M78,170.49063961843035H962" class="grid"/>
+<text x="66" y="174.49063961843035" text-anchor="end" class="tick">5 × 10⁴⁴</text>
+<path d="M78,144H962" class="grid"/>
+<text x="66" y="148" text-anchor="end" class="tick">1 × 10⁴⁵</text>
+<path d="M78,117.50936038156965H962" class="grid"/>
+<text x="66" y="121.50936038156965" text-anchor="end" class="tick">2 × 10⁴⁵</text>
+<path d="M78,82.49063961843035H962" class="grid"/>
+<text x="66" y="86.49063961843035" text-anchor="end" class="tick">5 × 10⁴⁵</text>
+<path d="M78,56H962" class="grid"/>
+<text x="66" y="60" text-anchor="end" class="tick">1 × 10⁴⁶</text>
+<path d="M78,56V232H962" class="axis"/>
+<path d="M78,232v5" class="axis"/>
+<text x="78" y="255" text-anchor="start" class="tick">17 Dec 2025</text>
+<text x="78" y="271" text-anchor="start" class="hour">00:00</text>
+<path d="M237.54125831805854,232v5" class="axis"/>
+<text x="237.54125831805854" y="255" text-anchor="middle" class="tick">17 Dec 2025</text>
+<text x="237.54125831805854" y="271" text-anchor="middle" class="hour">04:00</text>
+<path d="M374.96261832429764,232v5" class="axis"/>
+<text x="374.96261832429764" y="255" text-anchor="middle" class="tick">17 Dec 2025</text>
+<text x="374.96261832429764" y="271" text-anchor="middle" class="hour">19:00</text>
+<path d="M534.5038766423562,232v5" class="axis"/>
+<text x="534.5038766423562" y="255" text-anchor="middle" class="tick">21 Dec 2025</text>
+<text x="534.5038766423562" y="271" text-anchor="middle" class="hour">03:00</text>
+<path d="M694.0451349604148,232v5" class="axis"/>
+<text x="694.0451349604148" y="255" text-anchor="middle" class="tick">06 Jan 2026</text>
+<text x="694.0451349604148" y="271" text-anchor="middle" class="hour">19:00</text>
+<path d="M831.4664949666537,232v5" class="axis"/>
+<text x="831.4664949666537" y="255" text-anchor="middle" class="tick">10 Mar 2026</text>
+<text x="831.4664949666537" y="271" text-anchor="middle" class="hour">07:00</text>
+<path d="M962,232v5" class="axis"/>
+<text x="962" y="255" text-anchor="end" class="tick">23 Oct 2026</text>
+<text x="962" y="271" text-anchor="end" class="hour">22:00</text>
+<path d="M78,194.6104159764664L962,88.70105022847895" class="literature-link"><title>Chronology across different parameters, not an improvement comparison</title></path>
+<path d="M962,88.70105022847895L962,88.71126243402597" class="evaluation-link"><title>Same fixed benchmark</title></path>
+<g><title>Paureel · 2c · 4.248944993 × 10⁴⁵ J · 2026-10-23T22:07:01.541638+00:00</title>
+<path d="M962,88.71126243402597L950,64.71126243402597" class="leader"/>
+<text x="950" y="60.71126243402597" text-anchor="end" class="energy">4.248944993 × 10⁴⁵ J</text>
+<text x="950" y="78.71126243402597" text-anchor="end" class="author">Paureel · 2c</text>
+<circle cx="962" cy="88.71126243402597" r="5" fill="#a8d1ff" stroke="#a8d1ff" stroke-width="1.5"/></g>
+<g><title>Rodal · 2c reference · 4.250080505 × 10⁴⁵ J · 2026-10-23T22:06:31.160746+00:00</title>
+<path d="M962,88.70105022847895L950,140.70105022847895" class="leader"/>
+<text x="950" y="136.70105022847895" text-anchor="end" class="energy">4.250080505 × 10⁴⁵ J</text>
+<text x="950" y="154.70105022847895" text-anchor="end" class="author">Rodal · 2c reference</text>
+<circle cx="962" cy="88.70105022847895" r="5" fill="#a8d1ff" stroke="#a8d1ff" stroke-width="1.5"/></g>
+<g><title>Rodal · 1c publication · 2.66 × 10⁴⁴ J · 2025-12-17</title>
+<path d="M78,194.6104159764664L90,170.6104159764664" class="leader"/>
+<text x="90" y="166.6104159764664" text-anchor="start" class="energy">2.66 × 10⁴⁴ J</text>
+<text x="90" y="184.6104159764664" text-anchor="start" class="author">Rodal · 1c publication</text>
+<circle cx="78" cy="194.6104159764664" r="5" fill="#0b1426" stroke="#e0b780" stroke-width="1.5"/></g>
+<text x="78" y="311" class="meta">Dates use UTC; the original publication reports a day, not an hour.</text>
+</svg>

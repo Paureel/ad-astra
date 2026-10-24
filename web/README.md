@@ -133,9 +133,11 @@ Model source: [Rodal, arXiv:2512.18008v1](https://arxiv.org/abs/2512.18008v1).
 The benchmark's 2c energy is the repository calculation, not a figure quoted
 from the paper. Formal obligations remain in `docs/FORMALIZATION.md`.
 
-Regenerate history with `python3 scripts/build_viewer_history.py` after updating
+Regenerate history with `npm run data` after updating
 the generated reports and their viewer artifacts. The bundler checks candidate,
-benchmark, energy, and evaluator identity; it never edits a score.
+benchmark, energy, and evaluator identity; it never edits a score. The same
+command regenerates `docs/energy-timeline.svg` for the README, using the viewer’s
+hourly logarithmic projection. `npm test` checks that this figure is current.
 
 `records/history.json` is the reviewable timeline manifest. Add a generated report
 and viewer path, plus `"author": {"git_commit": "FULL_COMMIT_HASH"}` for a new

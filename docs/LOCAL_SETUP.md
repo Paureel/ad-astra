@@ -1,55 +1,57 @@
-# Local viewer setup
+# Local setup
 
-Task: local setup and scientific viewer redesign (WP-008-related display work;
-the independent audit prerequisite and research task remain open).
-Starting revision: empty `main` branch, with no commits. The supplied archive's
-65 content hashes matched its original manifest before edits.
+Clone the repository after receiving access, then run commands from its root.
+Node 18+ runs the viewer. Numerical checks use Python 3.12 and the pinned
+`requirements.lock`. On Windows, use WSL for the full Makefile workflow.
 
-Acceptance: interactive 3D reference geometry and computed fields, an inspectable
-history of actual supplied energy evaluations, common physical scales, local
-JSON imports, responsive layout, and unchanged benchmark and promotion gate.
-Primary changes: `web/`, local development/build scripts, documentation, and
-release exclusions. Evaluator, benchmark, candidates, and formal proofs stay
-bound to their original artifacts. Budget: local setup, bounded reproduction,
-and browser QA; no research optimization or formal theorem development.
-
-Run `npm run dev` and open http://127.0.0.1:4173. Node 18+ suffices. No npm
-install is required. `npm run build` creates a static `dist/` directory for
-possible future hosting; neither command publishes or contacts a host.
-
-The numerical environment is in `.venv` with Python 3.12.14 and the supplied
-`requirements.lock`. Activate it with `source .venv/bin/activate`.
-The official Lean 4.35.0 macOS arm64 toolchain is installed under `.tools/`;
-`make proof` selects it automatically. Its archive SHA-256 was verified against
-the official release: `c0c6f34f35ba1dcc5c4a5fd106fefab9eb5e8469712624dd2c868d51b63177c2`.
-`make test` also selects the local Python environment automatically.
-
-Useful checks:
+## Viewer
 
 ```sh
-npm test
-make test proof
-.venv/bin/python -m unittest discover -s tests -v
-.venv/bin/python formal/diagnostics/direct_ricci_check.py
-.venv/bin/python -m warpproof verify --require-formal  # expected exit 2
+npm run dev
 ```
 
-Regenerate the bundled history after intentional updates to generated reports:
-`python3 scripts/build_viewer_history.py`. The script checks that candidate,
-energy, benchmark, and evaluator identity agree with their viewer artifacts.
-The original receipts in `STATUS.json` describe the archive author's run.
-This setup's actual checks are recorded separately in `results/local/`.
+Open <http://127.0.0.1:4173>. Bundled results work without Python, npm install,
+a CDN, or an API key. `npm run build` writes a static viewer to `dist/`, including
+its license and attribution files. These commands do not publish the site.
 
-The requested interface uses a single full-screen scene, a floating selected
-energy, and the saved evaluation timeline. Scientific details and exact
-parameters are available through the provenance control. There is no dashboard
-section layout, automatic hosting, or remote source synchronization.
+## Numerical environment
 
-Timeline follow-up: add the publication's original energy and author, attribute
-the current repository entry to Paureel, resolve future contributor names from
-Git metadata, and use logarithmic axes with hourly bins and date labels.
-Starting revision is still uncommitted `main`. Scope: `records/history.json`,
-the history bundler, `web/`, and attribution/mapping regressions. Publication
-values and dates were checked against the pinned paper and publisher. The
-numerical evaluator, frozen benchmark, candidate bytes, and formal gate were
-not changed. Literature and benchmark results retain their separate meanings.
+```sh
+make setup
+make check
+```
+
+`make setup` creates `.venv` with Python 3.12 and installs the pinned dependencies.
+If Python has another executable name, use `make setup BOOTSTRAP_PYTHON=/path/to/python3.12`.
+The Python module and CLI retain the name `warpproof` for compatibility.
+Use `.venv/bin/python -m warpproof --help` to see the research commands.
+
+Keep experiments in ignored `results/local/` or `research/local/`. Preserve
+reference candidates and reports. See [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+## Formal checks
+
+Install the pinned Lean toolchain using [formal/README.md](../formal/README.md),
+then run `make check-formal`. The checked Lean lemmas have a limited scope;
+the formal-promotion command deliberately refuses incomplete certification.
+
+## Regenerate data
+
+After a reviewed history update:
+
+```sh
+npm run data
+make display-data
+make manifest
+```
+
+The history bundler checks candidate, energy, benchmark, and evaluator identity
+against the saved reports. `npm run data` refreshes the app history and README
+SVG timeline. The README figure uses the viewer’s same hourly log/log projection;
+`npm test` rejects a stale figure. Full Git history is needed when contributor
+attribution names an exact earlier commit. `make display-data` regenerates the
+calculated surfaces, density, and reference sky from the saved inputs.
+
+For contribution-specific checks and the PR workflow, see
+[CONTRIBUTING.md](../CONTRIBUTING.md). For scientific interpretation, see
+[the research workflow](RESEARCH_WORKFLOW.md) and [viewer documentation](../web/README.md).

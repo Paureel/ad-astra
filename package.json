@@ -1,12 +1,13 @@
 {
   "name": "ad-astra-viewer",
   "version": "0.1.0",
+  "license": "Apache-2.0",
   "private": true,
   "scripts": {
     "dev": "node scripts/serve.mjs",
     "build": "node scripts/build-web.mjs",
-    "test": "node --check web/app.js && node --input-type=module --check < web/scene.js && node --input-type=module --check < web/optics.js && node --input-type=module --check < web/saturn.js && node --input-type=module --check < web/ray-inspector.js && node --check web/equivalence.js && node --check web/timeline.js && node web/validate-viewer.cjs && node web/validate-physics.cjs && node web/validate-metric.cjs && node web/validate-controls.cjs",
-    "data": "python3 scripts/build_viewer_history.py"
+    "test": "node --check web/app.js && node --input-type=module --check < web/scene.js && node --input-type=module --check < web/optics.js && node --input-type=module --check < web/saturn.js && node --input-type=module --check < web/ray-inspector.js && node --check web/equivalence.js && node --check web/timeline.js && node web/validate-viewer.cjs && node web/validate-physics.cjs && node web/validate-metric.cjs && node web/validate-controls.cjs && node scripts/build-timeline.mjs --check",
+    "data": "python3 scripts/build_viewer_history.py && node scripts/build-timeline.mjs"
   },
   "engines": {
     "node": ">=18"

@@ -128,7 +128,7 @@ python3 -m warpproof render-data candidates/search-example.json --output results
 ```
 
 Add the reviewed viewer JSON through `records/history.json`, then run
-`python3 scripts/build_viewer_history.py`.
+`npm run data` to refresh both the app history and the README timeline.
 Compare it with the baseline using the same scale, field definitions, and
 benchmark settings. A search may fail to find an improvement. Report the
 actual result; never guarantee improvement or describe a numerical estimate as
