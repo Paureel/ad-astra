@@ -1663,15 +1663,18 @@ function onMouseMove( event ) {
 
 function onMouseWheel( event ) {
 
-	if ( this.enabled === false || this.enableZoom === false || this.state !== _STATE.NONE ) return;
+	// Ad Astra: wheel zoom remains available during a mouse orbit gesture.
+	if ( this.enabled === false || this.enableZoom === false ||
+		( this.state !== _STATE.NONE && this.state !== _STATE.ROTATE ) ) return;
 
 	event.preventDefault();
 
-	this.dispatchEvent( _startEvent );
+	const orbitInProgress = this.state === _STATE.ROTATE;
+	if ( ! orbitInProgress ) this.dispatchEvent( _startEvent );
 
 	this._handleMouseWheel( this._customWheelEvent( event ) );
 
-	this.dispatchEvent( _endEvent );
+	if ( ! orbitInProgress ) this.dispatchEvent( _endEvent );
 
 }
 

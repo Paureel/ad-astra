@@ -260,6 +260,13 @@
   const $ = (id) => document.getElementById(id);
   const baseline = validateArtifact(window.WARP_DEFAULT_RESULT);
   const densityScale = baseline.display.rho_scale_abs_J_m3;
+  const densityStops = Array.from({ length: 101 }, (_, i) => {
+    const rgb = window.AdAstraPhysics.densityRGB(-1 + i / 50, 1);
+    return `rgb(${rgb.join(",")}) ${i}%`;
+  });
+  document.querySelector(".field-key .ramp").style.background =
+    `linear-gradient(0deg,${densityStops.join(",")})`;
+
   const { hourBucket, HOUR_MS, logTimeline, artifactAuthor, authorName } =
     window.WarpTimeline;
   const publications = window.WARP_PUBLICATIONS || [];
@@ -433,7 +440,11 @@
       ["Exterior tail", sci(data.energy.tail?.absolute_J) + " J"],
       ["Numerical error estimate", sci(data.energy.error_estimate_J) + " J"],
       ["Error scope", data.energy.error_kind],
-      ["Display scale", sci(densityScale) + " J/m³, linear"],
+      [
+        "Display scale",
+        sci(densityScale) +
+          " J/m³; symmetric asinh(ρ / (0.01 × scale)) contrast, common endpoints",
+      ],
       [
         "Annihilation equivalent",
         sci(
@@ -947,7 +958,7 @@
     ).length;
     $("density-readout").textContent = clipped
       ? clipped + " samples exceed scale"
-      : "ρE · linear scale";
+      : "ρE · asinh contrast";
     $("scale-negative").textContent = "−" + sci(densityScale, 2);
     $("scale-positive").textContent = "+" + sci(densityScale, 2);
   }

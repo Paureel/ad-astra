@@ -136,7 +136,14 @@
     draw();
   }).observe(canvas);
   window.addEventListener("warp:select", (event) => update(event.detail));
+  let lastDraw = -Infinity;
   window.addEventListener("astra:frame", (event) => {
+    if (
+      event.detail.elapsed_ms - lastDraw >= 0 &&
+      event.detail.elapsed_ms - lastDraw < 1000 / 24
+    )
+      return;
+    lastDraw = event.detail.elapsed_ms;
     angle = event.detail.elapsed_ms * 0.000055;
     draw();
   });

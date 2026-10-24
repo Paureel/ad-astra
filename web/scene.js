@@ -1,40 +1,34 @@
 import * as THREE from "three";
 import { OrbitControls } from "./vendor/OrbitControls.js";
+import { StellarOptics } from "./optics.js";
+import { createRayInspector } from "./ray-inspector.js";
 
 const $ = (id) => document.getElementById(id);
 const host = $("scene-container"),
   canvas = $("geometry-canvas");
 const { sampleSlice } = window.WarpProofViewer;
-const { createRaySampler, densityRGB } = window.AdAstraPhysics;
+const { densityRGB } = window.AdAstraPhysics;
 const motionPreference = matchMedia("(prefers-reduced-motion: reduce)");
 let renderer,
   controls,
   camera,
   scene,
   field,
-  rayGroup,
   reference,
   sliceMesh,
-  craft;
+  craft,
+  optics;
 let pending = false,
   currentArtifact = null,
   framingFactor = 1;
 let playing = !motionPreference.matches,
   elapsed_ms = 0,
   lastTick = null,
-  lastRender = -Infinity;
-const layers = { field: true, rays: true, reference: true };
-const rayColors = [
-  "#ffdc8a",
-  "#ffb87c",
-  "#f391cd",
-  "#c59bff",
-  "#8fb8ff",
-  "#7bbfff",
-  "#b4a5ff",
-  "#c992de",
-  "#e9a8ac",
-];
+  lastRender = -Infinity,
+  frameDeltas = [],
+  slowFrames = 0,
+  lastQualityChange = 0;
+const layers = { field: true, reference: true };
 
 function requestRender() {
   if (!pending) {
@@ -48,14 +42,25 @@ function requestRender() {
       if (playing && lastTick !== null)
         elapsed_ms += Math.max(0, now - lastTick);
       lastTick = now;
-      // Cap playback at 30 fps; paused camera views render on demand.
-      if (playing && now - lastRender < 1000 / 30) {
-        requestRender();
-        return;
-      }
       controls.update();
-      animateRays();
-      renderer.render(scene, camera);
+      renderScene();
+      if (lastRender > 0 && now - lastRender < 250) {
+        const dt = now - lastRender;
+        frameDeltas.push(dt);
+        if (frameDeltas.length > 240) frameDeltas.shift();
+        slowFrames =
+          dt > 27 && dt < 250 ? slowFrames + 1 : Math.max(0, slowFrames - 1);
+        // Reduce the angular map resolution, never the geodesic equations.
+        if (slowFrames > 16 && now - lastQualityChange > 1500) {
+          if (optics.reduceQuality()) lastQualityChange = now;
+          else if (renderer.getPixelRatio() > 1) {
+            renderer.setPixelRatio(1);
+            renderer.setSize(host.clientWidth, host.clientHeight, false);
+            lastQualityChange = now;
+          }
+          slowFrames = 0;
+        }
+      }
       updateScale();
       lastRender = now;
       window.dispatchEvent(
@@ -65,38 +70,34 @@ function requestRender() {
     });
   }
 }
+function renderScene() {
+  // The schematic scale craft must not enclose and obscure a cabin observer.
+  if (craft) craft.visible = camera.position.length() > 6;
+  renderer.autoClear = true;
+  optics.render(camera);
+  renderer.autoClear = false;
+  renderer.clearDepth();
+  renderer.render(scene, camera);
+}
+function solutionFor(data) {
+  return window.AD_ASTRA_SOLUTIONS.solutions.find(
+    (s) =>
+      s.parameter_hash === data.candidate.parameter_hash &&
+      s.evaluator_source_sha256 === data.provenance?.evaluator_source_sha256,
+  );
+}
 function setPlaying(value) {
   playing = value;
   lastTick = null;
   const button = $("motion-toggle");
   button.setAttribute("aria-pressed", String(playing));
   const action = playing
-    ? "Pause sampled-ray playback"
-    : "Play sampled-ray playback";
+    ? "Pause mass-comparison rotation"
+    : "Play mass-comparison rotation";
   button.setAttribute("aria-label", action);
   button.title = action;
   document.documentElement.dataset.motion = playing ? "on" : "off";
   requestRender();
-}
-function animateRays() {
-  const playback = rayGroup?.userData.playback;
-  if (!playback?.length) return;
-  const first = Math.min(...playback.map((p) => p.sampler.start_s));
-  const last = Math.max(...playback.map((p) => p.sampler.end_s));
-  const time = first + ((elapsed_ms % 12000) / 12000) * (last - first);
-  const extent = currentArtifact.geometry.extent_m;
-  const place = (object, point) => {
-    object.visible = !!point && Math.max(...point.map(Math.abs)) <= extent;
-    if (object.visible) object.position.set(...point);
-  };
-  for (const { sampler, marker, trail } of playback) {
-    place(marker, sampler.sample(time));
-    trail.forEach((dot, i) =>
-      place(dot, sampler.sample(time - (i + 1) * (last - first) * 0.012)),
-    );
-  }
-  $("ray-clock").textContent = (time * 1e9).toFixed(0) + " ns";
-  $("ray-clock").hidden = !layers.rays;
 }
 function dispose(group) {
   if (!group) return;
@@ -200,44 +201,30 @@ function createGrid() {
 }
 function createReference(data) {
   const group = new THREE.Group();
-  const levels = data.geometry.isosurfaces || [];
-  const radius = levels.find((s) => s.f === 0.5)?.radius_m || 20;
-  for (let theta = 0; theta < Math.PI; theta += Math.PI / 12) {
-    const pts = [];
-    for (let i = 0; i <= 120; i++) {
-      const phi = (i / 120) * Math.PI * 2;
-      pts.push([
-        radius * Math.cos(phi) * Math.cos(theta),
-        radius * Math.cos(phi) * Math.sin(theta),
-        radius * Math.sin(phi),
-      ]);
+  const solution = solutionFor(data);
+  if (solution) {
+    // g_00 = |W|² - 1. This selected-metric stationary limit is neither
+    // a hull nor a global causal horizon. Spatial slices remain Euclidean.
+    const meridian = solution.surface_meridian;
+    for (let k = 0; k < 8; k++) {
+      const phi = (k * Math.PI) / 4;
+      group.add(
+        line(
+          meridian.map(([x, r]) => [x, r * Math.cos(phi), r * Math.sin(phi)]),
+          "#a5b7f2",
+          0.22,
+        ),
+      );
     }
-    group.add(line(pts, "#92a4df", 0.26));
-  }
-  for (let latitude = -60; latitude <= 60; latitude += 20) {
-    const lat = (latitude * Math.PI) / 180,
-      pts = [];
-    for (let i = 0; i <= 144; i++) {
-      const p = (i / 144) * Math.PI * 2;
-      pts.push([
-        radius * Math.cos(lat) * Math.cos(p),
-        radius * Math.cos(lat) * Math.sin(p),
-        radius * Math.sin(lat),
-      ]);
+    for (let j = 16; j < 128; j += 16) {
+      const [x, r] = meridian[j],
+        pts = [];
+      for (let k = 0; k <= 96; k++) {
+        const phi = (k * Math.PI) / 48;
+        pts.push([x, r * Math.cos(phi), r * Math.sin(phi)]);
+      }
+      group.add(line(pts, "#a5b7f2", 0.16));
     }
-    group.add(line(pts, "#a2a3e8", 0.23));
-  }
-  for (const surface of levels) {
-    const pts = [];
-    for (let i = 0; i <= 200; i++) {
-      const p = (i / 200) * Math.PI * 2;
-      pts.push([
-        surface.radius_m * Math.cos(p),
-        surface.radius_m * Math.sin(p),
-        0,
-      ]);
-    }
-    group.add(line(pts, "#aabafa", surface.f === 0.5 ? 0.75 : 0.27));
   }
   const cabin = new THREE.Group();
   for (let plane = 0; plane < 3; plane++) {
@@ -254,122 +241,78 @@ function createReference(data) {
   return group;
 }
 function createField(data) {
-  const source = data.slices.find((s) => s.plane === "xy" && s.offset_m === 0);
-  const group = new THREE.Group();
-  if (!source) return group;
-  // Axisymmetry is part of this frozen family. Revolve the central x-y samples
-  // about x; color uses the same fixed linear density scale as the 2D slice.
-  const extent = Math.min(data.geometry.extent_m, 40),
-    positions = [],
-    colors = [],
-    strengths = [];
+  const group = new THREE.Group(),
+    solution = solutionFor(data);
+  const clouds = [0, 1].map(() => ({
+    positions: [],
+    colors: [],
+    strengths: [],
+  }));
   const scale = data.display.rho_scale_abs_J_m3;
-  for (let i = 0; i <= 100; i++) {
-    const x = -extent + (2 * extent * i) / 100;
-    for (let j = 1; j <= 50; j++) {
-      const r = (extent * j) / 50,
-        value = sampleSlice(source, x, r),
-        strength = Math.min(1, Math.abs(value) / scale);
-      if (strength < 0.00005) continue;
-      const rgb = densityRGB(value, scale);
-      const color = new THREE.Color().setRGB(
-        rgb[0] / 255,
-        rgb[1] / 255,
-        rgb[2] / 255,
+  let samples = solution?.density_meridian;
+  if (!samples) {
+    // Older local artifacts have no independently generated display mesh.
+    // Retain their sampled field, but never substitute the baseline surface.
+    const source = data.slices.find(
+      (s) => s.plane === "xy" && s.offset_m === 0,
+    );
+    samples = [];
+    if (source)
+      for (let i = 0; i <= 100; i++)
+        for (let j = 1; j <= 50; j++) {
+          const x = -40 + 0.8 * i,
+            r = 0.8 * j,
+            v = sampleSlice(source, x, r) / scale;
+          if (Math.abs(v) >= 0.00005) samples.push([x, r, v]);
+        }
+  }
+  samples.forEach(([x, r, value]) => {
+    const rgb = densityRGB(value * scale, scale),
+      color = new THREE.Color().setRGB(
+        ...rgb.map((v) => v / 255),
         THREE.SRGBColorSpace,
       );
-      const segments = Math.max(8, Math.ceil(r * 3));
-      for (let k = 0; k < segments; k++) {
-        const angle = (k / segments) * Math.PI * 2;
-        positions.push(x, r * Math.cos(angle), r * Math.sin(angle));
-        colors.push(color.r, color.g, color.b);
-        strengths.push(strength);
-      }
+    const { positions, colors, strengths } = clouds[value < 0 ? 1 : 0];
+    // Stagger azimuthal samples to avoid visually inventing meridional bands.
+    const phase = x * 2.399963229728653 + r * 0.7548776662466927;
+    for (let k = 0; k < 12; k++) {
+      const phi = (k * Math.PI) / 6 + phase;
+      positions.push(x, r * Math.cos(phi), r * Math.sin(phi));
+      colors.push(color.r, color.g, color.b);
+      strengths.push(Math.min(1, Math.abs(value)));
     }
-  }
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(positions, 3),
-  );
-  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-  geometry.setAttribute(
-    "strength",
-    new THREE.Float32BufferAttribute(strengths, 1),
-  );
-  const material = new THREE.ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    vertexColors: true,
-    uniforms: { pixelRatio: { value: Math.min(devicePixelRatio || 1, 2) } },
-    vertexShader: `attribute float strength; varying vec3 vColor; varying float vStrength; uniform float pixelRatio; void main(){vColor=color;vStrength=strength;vec4 view=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*view;gl_PointSize=clamp(200./-view.z,1.1,3.5)*pixelRatio;}`,
-    fragmentShader: `varying vec3 vColor;varying float vStrength;void main(){float r=length(gl_PointCoord-vec2(.5));if(r>.5)discard;float a=(1.-smoothstep(.15,.5,r))*(.12+.78*pow(vStrength,.4));gl_FragColor=vec4(vColor,a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>}`,
   });
-  group.add(new THREE.Points(geometry, material));
-  return group;
-}
-function createRays(data) {
-  const group = new THREE.Group(),
-    extent = data.geometry.extent_m;
-  group.userData.playback = [];
-  data.rays.forEach((ray, i) => {
-    // Only supplied ray samples are drawn; paths outside the visible cube stop
-    // at the cube. Playback interpolates supplied samples in their coordinate
-    // time, never extrapolating beyond an individual ray's finite integration.
-    let segment = [];
-    for (const p of ray.points) {
-      if (
-        Math.max(Math.abs(p.x_m), Math.abs(p.y_m), Math.abs(p.z_m)) <= extent
-      ) {
-        segment.push([p.x_m, p.y_m, p.z_m]);
-      } else if (segment.length) {
-        if (segment.length > 1)
-          group.add(line(segment, rayColors[i % rayColors.length], 0.68));
-        segment = [];
-      }
-    }
-    if (segment.length > 1)
-      group.add(line(segment, rayColors[i % rayColors.length], 0.68));
-    try {
-      const sampler = createRaySampler(ray.points);
-      const marker = new THREE.Group();
-      const color = rayColors[i % rayColors.length];
-      marker.add(
-        new THREE.Mesh(
-          new THREE.SphereGeometry(0.28, 8, 6),
-          new THREE.MeshBasicMaterial({ color: "#fff7ed" }),
-        ),
-      );
-      marker.add(
-        new THREE.Mesh(
-          new THREE.SphereGeometry(0.85, 12, 8),
-          new THREE.MeshBasicMaterial({
-            color,
-            transparent: true,
-            opacity: 0.18,
-            depthWrite: false,
-            blending: THREE.AdditiveBlending,
-          }),
-        ),
-      );
-      const trail = Array.from(
-        { length: 5 },
-        (_, j) =>
-          new THREE.Mesh(
-            new THREE.SphereGeometry(0.24, 6, 4),
-            new THREE.MeshBasicMaterial({
-              color,
-              transparent: true,
-              opacity: 0.65 - j * 0.1,
-              depthWrite: false,
-            }),
-          ),
-      );
-      group.add(marker, ...trail);
-      group.userData.playback.push({ sampler, marker, trail });
-    } catch {
-      // Partial/invalid time series keep their supplied static path only.
-    }
+  clouds.forEach(({ positions, colors, strengths }, negative) => {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(positions, 3),
+    );
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute(
+      "strength",
+      new THREE.Float32BufferAttribute(strengths, 1),
+    );
+    const material = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      vertexColors: true,
+      uniforms: {
+        pixelRatio: { value: Math.min(devicePixelRatio || 1, 1.5) },
+        emphasis: { value: negative },
+      },
+      vertexShader: `attribute float strength; varying vec3 vColor; varying float vStrength; uniform float pixelRatio; uniform float emphasis;
+      void main(){vColor=color;vStrength=strength;vec4 view=modelViewMatrix*vec4(position,1.);gl_Position=projectionMatrix*view;gl_PointSize=clamp(200./-view.z,1.1,3.5)*pixelRatio*(1.+1.1*emphasis);}`,
+      fragmentShader: `varying vec3 vColor;varying float vStrength;uniform float emphasis;
+      void main(){float r=length(gl_PointCoord-vec2(.5));if(r>.5)discard;float a=(1.-smoothstep(.15,.5,r))*min(.85,(.12+.78*pow(vStrength,.4))*(1.+.8*emphasis));gl_FragColor=vec4(vColor,a);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>}`,
+    });
+    const points = new THREE.Points(geometry, material);
+    // Diagnostic visibility emphasis: glyph area/opacity is not density. Draw
+    // negatives after the translucent positive cloud, retaining depth testing.
+    points.renderOrder = negative ? 2 : 0;
+    group.add(points);
   });
   return group;
 }
@@ -463,14 +406,15 @@ function createSlice(data, slice) {
 function updateData({ artifact, slice }) {
   if (!renderer) return;
   if (currentArtifact !== artifact) {
+    if ($("ray-dialog").open) $("ray-dialog").close();
     currentArtifact = artifact;
+    optics.setArtifact(artifact);
     elapsed_ms = 0;
-    for (const group of [field, rayGroup, reference, craft]) dispose(group);
+    for (const group of [field, reference, craft]) dispose(group);
     field = createField(artifact);
-    rayGroup = createRays(artifact);
     reference = createReference(artifact);
     craft = createCraft(artifact.geometry.ship_length_m);
-    scene.add(field, rayGroup, reference, craft);
+    scene.add(field, reference, craft);
   }
   dispose(sliceMesh);
   sliceMesh = createSlice(artifact, slice);
@@ -481,7 +425,6 @@ function updateData({ artifact, slice }) {
 function applyLayers() {
   if (field) field.visible = layers.field;
   if (sliceMesh) sliceMesh.visible = layers.field;
-  if (rayGroup) rayGroup.visible = layers.rays;
   if (reference) reference.visible = layers.reference;
   document.querySelector(".field-key").hidden = !layers.field;
   requestRender();
@@ -497,7 +440,7 @@ function setCamera(view) {
   } else if (view === "yz") {
     camera.position.set(100, 0, 0);
     camera.up.set(0, 0, 1);
-  } else camera.position.set(46, -65, 43);
+  } else camera.position.set(-62.1, -87.75, 58.05);
   framingFactor = Math.max(1, 0.9 / (host.clientWidth / host.clientHeight));
   camera.position.multiplyScalar(framingFactor);
   camera.lookAt(0, 0, 0);
@@ -514,7 +457,7 @@ function createControls() {
   orbit.enableDamping = !matchMedia("(prefers-reduced-motion: reduce)").matches;
   orbit.dampingFactor = 0.12;
   orbit.enablePan = false;
-  orbit.minDistance = 45;
+  orbit.minDistance = 0.35;
   orbit.maxDistance = 320;
   orbit.addEventListener("change", requestRender);
   orbit.addEventListener("start", () => {
@@ -536,11 +479,106 @@ function updateScale() {
   bar.hidden = pixels < 10 || pixels > host.clientWidth / 2;
   bar.querySelector("i").style.width = pixels + "px";
 }
+function setupDiagnostics() {
+  // Opt-in local QA: no readbacks or benchmark motion during normal use.
+  let benchmarking = false;
+  window.AdAstraDiagnostics = {
+    snapshot() {
+      const sorted = frameDeltas.slice().sort((a, b) => a - b);
+      return {
+        fps: sorted.length
+          ? 1000 / (sorted.reduce((a, b) => a + b, 0) / sorted.length)
+          : null,
+        p95_frame_ms: sorted[Math.floor(sorted.length * 0.95)] ?? null,
+        pixel_ratio: renderer.getPixelRatio(),
+        renderer: renderer.info.render,
+        optics: optics.diagnostics(),
+        surface: solutionFor(currentArtifact)?.surface_quantity,
+        field_vertices: field?.children.reduce(
+          (n, p) => n + p.geometry.attributes.position.count,
+          0,
+        ),
+        playing,
+        ray_count: currentArtifact?.rays.length,
+        observer_m: camera.position.toArray(),
+        view_direction: camera.getWorldDirection(new THREE.Vector3()).toArray(),
+      };
+    },
+    audit(ray = null) {
+      const solution = solutionFor(currentArtifact);
+      if (!solution)
+        throw new Error("No independent fixtures for this artifact.");
+      const result = optics.audit(
+        solution.field_audit,
+        solution.optical_reference,
+        ray,
+      );
+      requestRender();
+      return result;
+    },
+    setOpticalRows(rows) {
+      if (!Number.isInteger(rows) || rows < 72 || rows > 576)
+        throw new Error("Audit resolution must be 72–576 rows.");
+      optics.quality = rows / 144;
+      optics.dirty = true;
+      requestRender();
+    },
+    setObserver(position) {
+      if (
+        !Array.isArray(position) ||
+        position.length !== 3 ||
+        !position.every(Number.isFinite) ||
+        Math.hypot(...position) < 0.35 ||
+        Math.hypot(...position) > 320
+      )
+        throw new Error("Observer must be within the supported camera range.");
+      camera.position.set(...position);
+      camera.lookAt(0, 0, 0);
+      controls.update();
+      requestRender();
+    },
+    async benchmark({ orbit = true, duration_ms = 6000 } = {}) {
+      if (benchmarking) throw new Error("Benchmark already running.");
+      benchmarking = true;
+      const saved = camera.position.clone(),
+        wasPlaying = playing;
+      controls.enableDamping = false;
+      setPlaying(true);
+      frameDeltas = [];
+      try {
+        await new Promise((resolve) => {
+          let start = null;
+          const tick = (now) => {
+            if (start === null) start = now;
+            if (orbit) {
+              const a = (now - start) * 0.00013;
+              camera.position
+                .copy(saved)
+                .applyAxisAngle(new THREE.Vector3(0, 0, 1), a);
+              camera.lookAt(0, 0, 0);
+            }
+            requestRender();
+            if (now - start >= duration_ms) resolve();
+            else requestAnimationFrame(tick);
+          };
+          requestAnimationFrame(tick);
+        });
+        return this.snapshot();
+      } finally {
+        camera.position.copy(saved);
+        controls.enableDamping = !motionPreference.matches;
+        controls.update();
+        setPlaying(wasPlaying);
+        benchmarking = false;
+        requestRender();
+      }
+    },
+  };
+}
 function fail(error) {
   $("scene-fallback").hidden = false;
   $("capture-scene").disabled = true;
   $("motion-toggle").disabled = true;
-  $("ray-clock").hidden = true;
   console.error("Ad Astra 3D:", error);
 }
 try {
@@ -550,11 +588,12 @@ try {
     antialias: true,
     preserveDrawingBuffer: true,
   });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+  optics = new StellarOptics(renderer, requestRender);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2("#0b1229", 0.002);
-  camera = new THREE.PerspectiveCamera(40, 1, 0.1, 600);
+  camera = new THREE.PerspectiveCamera(40, 1, 0.02, 600);
   camera.up.set(0, 0, 1);
   controls = createControls();
   scene.add(new THREE.AmbientLight("#a6baff", 1.8));
@@ -562,6 +601,18 @@ try {
   light.position.set(10, -20, 30);
   scene.add(light);
   createGrid();
+  createRayInspector({
+    getArtifact: () => currentArtifact,
+    isPlaying: () => playing,
+    setPlaying,
+  });
+  setupDiagnostics();
+  $("stellar-lensing").disabled = !optics.available;
+  $("stellar-lensing").setAttribute("aria-pressed", String(optics.available));
+  $("stellar-lensing").addEventListener("click", (event) => {
+    optics.setEnabled(!optics.enabled);
+    event.currentTarget.setAttribute("aria-pressed", String(optics.enabled));
+  });
   new ResizeObserver(() => {
     const w = host.clientWidth,
       h = host.clientHeight;
@@ -576,19 +627,18 @@ try {
   setCamera("perspective");
   setPlaying(playing);
   $("motion-toggle").addEventListener("click", () => setPlaying(!playing));
-  $("ray-clock").title =
-    "Shared ray coordinate time; the finite integration is replayed over 12 seconds.";
   motionPreference.addEventListener("change", (event) => {
     if (event.matches) setPlaying(false);
   });
   document.addEventListener("visibilitychange", () => {
     lastTick = null;
+    lastRender = -Infinity;
     if (!document.hidden) requestRender();
   });
   if (window.WarpProofState) updateData(window.WarpProofState);
   window.addEventListener("warp:select", (event) => updateData(event.detail));
   window.addEventListener("warp:slice", (event) => updateData(event.detail));
-  for (const name of ["field", "rays", "reference"])
+  for (const name of ["field", "reference"])
     $("layer-" + name).addEventListener("click", (event) => {
       layers[name] = !layers[name];
       event.currentTarget.setAttribute("aria-pressed", String(layers[name]));
@@ -629,7 +679,7 @@ try {
     if (event.key === "ArrowDown")
       s.phi = Math.min(Math.PI - 0.05, s.phi + 0.1);
     if (["+", "="].includes(event.key))
-      s.radius = Math.max(45, s.radius * 0.92);
+      s.radius = Math.max(0.35, s.radius * 0.85);
     if (event.key === "-") s.radius = Math.min(230, s.radius * 1.08);
     const next = new THREE.Vector3().setFromSpherical(s);
     camera.position.set(next.x, next.z, next.y).add(controls.target);
@@ -637,43 +687,51 @@ try {
     requestRender();
   });
   $("capture-scene").addEventListener("click", () => {
-    renderer.render(scene, camera);
+    renderScene();
     const output = document.createElement("canvas");
     output.width = canvas.width;
-    output.height = canvas.height + 120;
+    const meta = optics.diagnostics(),
+      view = camera.getWorldDirection(new THREE.Vector3());
+    const captions = [
+      `Ad Astra · ${currentArtifact.candidate.id} · ${currentArtifact.benchmark.id}`,
+      "Comoving metres · numerical only · g00 = 0 surface · schematic 8 m craft",
+      "Color: symmetric asinh contrast; negative glyph size/opacity emphasized",
+      "Parameters: " + currentArtifact.candidate.parameter_hash,
+      "Observer / m: " +
+        camera.position
+          .toArray()
+          .map((x) => x.toPrecision(8))
+          .join(", "),
+      "View direction: " +
+        view
+          .toArray()
+          .map((x) => x.toPrecision(8))
+          .join(", "),
+      `Sky: ${meta.width} x ${meta.height}; ${meta.refined ? "refined" : "interactive"}; finite-boundary angular approximation`,
+    ];
     const ctx = output.getContext("2d");
+    ctx.font = "11px monospace";
+    const lines = [];
+    for (const caption of captions) {
+      let line = "";
+      for (const char of caption) {
+        if (ctx.measureText(line + char).width > output.width - 44) {
+          lines.push(line);
+          line = "";
+        }
+        line += char;
+      }
+      if (line) lines.push(line);
+    }
+    output.height = canvas.height + lines.length * 16 + 28;
     ctx.fillStyle = "#0b1229";
     ctx.fillRect(0, 0, output.width, output.height);
     ctx.drawImage(canvas, 0, 0);
-    ctx.font = "14px monospace";
-    ctx.fillStyle = "#d4dafa";
-    ctx.fillText(
-      "Ad Astra · " +
-        currentArtifact.candidate.id +
-        " · " +
-        currentArtifact.benchmark.id,
-      22,
-      canvas.height + 30,
-    );
-    ctx.fillStyle = "#9daaca";
-    ctx.fillText(
-      "Comoving metres · numerical only · reference F surfaces · 8 m scale craft",
-      22,
-      canvas.height + 53,
-    );
     ctx.font = "11px monospace";
-    ctx.fillText(
-      "Parameters: " + currentArtifact.candidate.parameter_hash,
-      22,
-      canvas.height + 77,
-    );
-    ctx.fillText(
-      "Ray coordinate time: " +
-        $("ray-clock").textContent +
-        (layers.rays ? " · sampled finite integration" : " · rays hidden"),
-      22,
-      canvas.height + 99,
-    );
+    lines.forEach((line, i) => {
+      ctx.fillStyle = i === 0 ? "#d4dafa" : "#9daaca";
+      ctx.fillText(line, 22, canvas.height + 22 + i * 16);
+    });
     const link = document.createElement("a");
     link.href = output.toDataURL("image/png");
     link.download = currentArtifact.candidate.id + "-geometry.png";

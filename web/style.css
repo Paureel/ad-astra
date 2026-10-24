@@ -73,26 +73,8 @@ button svg {
     #090f21 79%
   );
 }
-#scene-container::before {
-  content: "";
-  position: absolute;
-  inset: -15%;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse at 73% 22%, #55378620, transparent 42%),
-    radial-gradient(ellipse at 25% 62%, #12616c1f, transparent 43%);
-  animation: atmosphere-drift 28s ease-in-out infinite alternate;
-}
 #geometry-canvas {
   position: relative;
-}
-@keyframes atmosphere-drift {
-  to {
-    transform: translate3d(3%, -2%, 0) scale(1.06);
-  }
-}
-html[data-motion="off"] #scene-container::before {
-  animation-play-state: paused;
 }
 #geometry-canvas {
   height: 100%;
@@ -302,13 +284,6 @@ header > * {
 }
 #motion-toggle[aria-pressed="false"] .pause-symbol {
   display: none;
-}
-#ray-clock {
-  font: 8px var(--mono);
-  color: #9cafd0;
-  white-space: nowrap;
-  margin-top: -14px;
-  margin-bottom: 1px;
 }
 .scene-tools [aria-pressed="true"] {
   color: #bbcefa;
@@ -649,6 +624,16 @@ dialog::backdrop {
   color: #9ed9fc;
   border-bottom: 1px solid #668ab6;
 }
+#ray-dialog {
+  width: 480px;
+}
+#ray-select {
+  width: 100%;
+  margin-bottom: 8px;
+}
+#ray-dialog .dialog-body dl {
+  grid-template-columns: 135px minmax(0, 1fr);
+}
 [hidden] {
   display: none !important;
 }
@@ -960,4 +945,16 @@ dialog::backdrop {
     transition: none !important;
     animation: none !important;
   }
+}
+
+.detail-link {
+  color: #9ed9fc;
+  padding: 0;
+  border-bottom: 1px solid #668ab6;
+}
+
+.equivalence-value {
+  text-shadow:
+    0 1px 5px #090f21,
+    0 0 10px #090f21;
 }

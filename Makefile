@@ -2,7 +2,7 @@ PYTHON ?= $(if $(wildcard .venv/bin/python),.venv/bin/python,python3)
 LEAN_BIN ?= $(CURDIR)/.tools/lean-4.35.0-darwin_aarch64/bin
 BOOTSTRAP_PYTHON ?= python3.12
 
-.PHONY: setup check check-formal manifest test reproduce baseline viewer search proof verify-formal
+.PHONY: setup check check-formal manifest test reproduce baseline viewer display-data search proof verify-formal
 
 .venv/bin/python:
 	$(BOOTSTRAP_PYTHON) -m venv .venv
@@ -43,3 +43,7 @@ proof:
 # Deliberately nonzero until all certification obligations are implemented.
 verify-formal:
 	$(PYTHON) -m warpproof verify --require-formal
+
+display-data:
+	$(PYTHON) scripts/build_optics.py
+	$(PYTHON) scripts/build_sky.py --catalogue web/stars.json

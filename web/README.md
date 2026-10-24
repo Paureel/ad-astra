@@ -10,16 +10,16 @@ evaluations. Select a timeline point or use the history slider to inspect its
 saved artifact. The camera and physical color scale stay fixed between entries.
 The icon controls select layers, camera views, the density slice, and PNG export.
 Controls expose accessible names, focus states, and tooltips. Arrow keys rotate
-the focused canvas, +/− zoom, and 0 restores the perspective camera.
+the focused canvas, +/− zoom, and 0 restores the perspective camera. Scroll zoom
+works while holding the left mouse button to orbit, and can enter the 10 m cabin.
+The observer-dependent optical map follows the camera inside and outside.
 
-The play/pause control replays the finite numerical ray integration over 12
-seconds. Markers share the same recorded coordinate time (displayed in ns),
-with piecewise-linear interpolation between time-stamped samples. They stop
-at each ray's final sample and disappear outside the display cube; they never
-extrapolate or imply a periodic physical trajectory. The loop then restarts.
-The density field and reference surfaces stay stationary. Playback is capped
-at 30 fps, stops while the tab is hidden, and starts paused when the browser
-requests reduced motion. The globe graticules rotate illustratively.
+The density and selected-metric surfaces stay stationary. The main scene has
+no ship-emitted ray lines, markers or ray playback controls. The finite ray data
+are preserved in JSON exports; plain-language light-path explanations and final
+stored values remain inside provenance. The play/pause control affects only
+the illustrative mass-comparison rotation, which updates at at most 24 fps,
+stops in hidden tabs and starts paused under reduced-motion preferences.
 
 ## Annihilation comparison
 
@@ -95,30 +95,34 @@ change the permanent numerical-only display or enable formal promotion.
   including the infinite exterior tail. It is not derived from displayed pixels.
 - Positions are comoving metres. The frozen slices are Euclidean; this is a
   coordinate view, not a curved-space embedding.
-- The 3D point field revolves bilinearly interpolated central XY samples around
-  x, using the frozen family's axisymmetry. It covers x ∈ [−40,40] m and radial
-  distance up to 40 m. Samples below 0.005% of the fixed density scale are omitted
-  for display; no energy is removed from the reported integral. Opacity helps
-  expose structure and is not a second physical field.
-- The signed color mapping is linear, symmetric, and fixed to the baseline.
+- The 3D point field revolves direct Python evaluations on a refined meridional
+  grid around x, using the frozen family's axisymmetry. It covers radius ≤40 m.
+  Samples below 0.005% of the fixed density scale are omitted for display; no
+  energy is removed from the integral. Opacity exposes structure rather than
+  encoding a second physical field. Older local artifacts without a generated
+  mesh retain their supplied interpolated density samples.
+- The signed color mapping is symmetric and fixed to common baseline endpoints.
+  Contrast is asinh(|ρ|/(0.01×scale))/asinh(100), using the same transform for
+  both signs, candidates and slices. This exposes weaker negative peaks without
+  changing values; the legend uses that same mapping. Negative glyphs are 2.1×
+  larger and up to 1.8× more opaque to expose their region through the positive
+  cloud. Glyph size, opacity and layering are diagnostic visibility aids.
   Rose denotes negative density; cyan denotes positive density, in J/m³.
   Values outside the scale saturate and are counted in provenance and the slice.
 - The slice interpolates the supplied density grid. Offset and plane selection
   update the 3D slice and optional 2D view. Their axes and units remain explicit.
-- The spherical wireframe is the published baseline F = 0.5 reference profile.
-  Additional rings mark F = 0.1 and 0.9. Dashed circles mark the 10 m cabin.
-  These are reference markers, not candidate energy isosurfaces or a physical hull.
+- The wireframe is the selected metric's stationary limit |∇Φ| = 1 (g₀₀ = 0).
+  Dashed circles mark the 10 m cabin. These are coordinate diagnostics, not an
+  event horizon, energy boundary or physical hull. No baseline stationary-limit
+  shape is substituted for an unbundled artifact.
 - The 8 m scale craft is schematic and contributes no gravitating mass.
-- Ray lines connect only the supplied finite numerical integration samples.
-  Segments outside the display cube are omitted; no spline or extrapolation is
-  used. A finite integration interval does not establish an event horizon.
-- Ray-marker size and brightness are visual highlights, not photon size,
-  frequency, or intensity. The shared ns clock is coordinate time, not a local
-  observer's proper time. Background gradients are decorative, not data.
+- Ship-emitted ray data remain finite supplied integrations, with no
+  extrapolation. Their details report coordinate time and local frequency ratios,
+  not a local observer’s proper clock or a proof of an event horizon.
 - The floor grid has 5 m spacing. The scale bar projects 20 m along x at the
   current view's origin, and hides when that projection is too short or large.
 - PNG exports include the candidate, benchmark, parameter hash, units, and
-  numerical status, plus the displayed ray time. JSON preserves the original
+  numerical status and optical scope. JSON preserves the original
   artifact; CSV reports history.
 
 Model source: [Rodal, arXiv:2512.18008v1](https://arxiv.org/abs/2512.18008v1).
@@ -143,3 +147,41 @@ matching known parameters inherit the current manifest's attribution.
 
 Run `npm test` for schema, interpolation, SI frame conversion, bundled history,
 and fixed-benchmark import checks. Browser layout and WebGL checks are separate.
+
+## Calculated reference sky
+
+The quiet background contains measured Hipparcos stars and one extended Saturn
+reference source. Saturn uses a measured oblate reference shape and principal
+ring radii, at a chosen 1.2 million km distance. Backward null-ray integration
+through the selected metric maps every sky pixel, including Saturn's disk and
+rings, to its source direction. The lens icon toggles the unlensed reference
+for comparison. The camera is an instantaneous Eulerian observer; its position
+changes the optical calculation, even inside the bubble.
+
+The sky keeps fixed display colors and exposure. It predicts approximate angular
+deflection, not spectra, photon counts or calibrated magnification. Planet
+placement, bands and lighting are illustrative; no ephemeris or Saturn gravity
+is included. The 65,536 m finite boundary, 640-step interactive limit and interpolated angular
+map have unresolved directions and no rigorous global error bound. Stationary views progressively refine with
+twice the angular resolution and half the interactive step size. Unresolved
+blends of widely separated ray directions are rejected. Geometry and
+outgoing ray paths remain coordinate overlays. Full equations, source attribution,
+sampling, numerical audits and approximation limits are in
+[VISUALIZATION_OPTICS.md](../docs/VISUALIZATION_OPTICS.md).
+
+Rebuild all selected display meshes from the history and the quiet sky offline:
+
+```sh
+make display-data
+```
+
+This uses the reference Python environment and never modifies scores or history.
+The sky can also be refreshed from NASA using `scripts/build_sky.py`; the committed
+catalogue records its query, epoch, exclusions, generator and PNG digests. A new
+contribution only needs its exact candidate, report and viewer in the existing
+history workflow. The optical mesh generator discovers the candidate by file
+hash and refuses mismatched evaluator identities.
+
+Local performance/audit hooks are available as `AdAstraDiagnostics.snapshot()`,
+`.audit()` and `.benchmark({orbit:true,duration_ms:6000})`. Benchmarks intentionally
+move the camera only when invoked. No GPU readback runs during ordinary use.

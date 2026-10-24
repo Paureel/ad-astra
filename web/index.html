@@ -22,7 +22,7 @@
           id="geometry-canvas"
           tabindex="0"
           role="img"
-          aria-label="Interactive 3D geometry in comoving metres. Drag to orbit, scroll to zoom, arrow keys to rotate."
+          aria-label="Interactive 3D geometry in comoving metres. Drag to orbit, scroll to zoom inside or outside the bubble, arrow keys to rotate."
         ></canvas>
         <div id="scene-fallback" hidden>
           3D unavailable. Open the density slice to inspect the computed field.
@@ -103,8 +103,8 @@
         <button
           id="motion-toggle"
           type="button"
-          aria-label="Pause sampled-ray playback"
-          title="Pause sampled-ray playback"
+          aria-label="Pause mass-comparison rotation"
+          title="Pause mass-comparison rotation"
           aria-pressed="true"
         >
           <svg viewBox="0 0 24 24">
@@ -112,11 +112,19 @@
             <path class="play-symbol" d="m9 5 10 7-10 7z" />
           </svg>
         </button>
-        <output
-          id="ray-clock"
-          aria-label="Sampled ray coordinate time"
-        ></output>
         <div class="layer-controls">
+          <button
+            id="stellar-lensing"
+            type="button"
+            aria-label="Calculated sky deflection"
+            title="Calculated sky deflection · toggle to compare"
+            aria-pressed="true"
+          >
+            <svg viewBox="0 0 24 24">
+              <path d="M3 6q18 6 0 12M21 6Q3 12 21 18" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
           <button
             id="layer-field"
             type="button"
@@ -136,16 +144,6 @@
               <circle cx="12" cy="15" r=".8" />
               <circle cx="17" cy="17" r=".8" />
               <circle cx="12" cy="19" r=".8" />
-            </svg></button
-          ><button
-            id="layer-rays"
-            type="button"
-            aria-label="Null rays"
-            title="Null rays"
-            aria-pressed="true"
-          >
-            <svg viewBox="0 0 24 24">
-              <path d="M3 18Q12 3 21 6M3 18q10-7 18-3M3 18h18" />
             </svg></button
           ><button
             id="layer-reference"
@@ -220,7 +218,11 @@
           </svg>
         </button>
       </div>
-      <div class="field-key" aria-label="Fixed linear energy-density scale">
+      <div
+        class="field-key"
+        aria-label="Fixed symmetric asinh energy-density color scale"
+        title="Energy density: symmetric asinh contrast, common scale for both signs and candidates"
+      >
         <span id="scale-positive"></span><span class="ramp"><i></i></span
         ><span id="scale-negative"></span><span class="density-unit">J/m³</span>
       </div>
@@ -243,7 +245,7 @@
           <canvas
             id="density-canvas"
             role="img"
-            aria-label="Computed energy-density slice in comoving metres, using the fixed linear signed color scale"
+            aria-label="Computed energy-density slice in comoving metres, using the common symmetric asinh signed color scale"
           ></canvas
           ><span id="density-y"></span><span id="density-x"></span>
         </div>
@@ -314,6 +316,9 @@
         </div>
         <div class="dialog-body">
           <dl id="provenance-fields"></dl>
+          <button id="ray-inspect" class="detail-link" type="button">
+            Light-path explanations ↗
+          </button>
           <h3>Exact parameters</h3>
           <pre id="parameters-json"></pre>
           <h3>Scope</h3>
@@ -324,19 +329,48 @@
             remains unavailable.
           </p>
           <p>
-            The wireframe marks the baseline F profile; the 8 m craft is a scale
-            reference. The density field is interpolated from sampled data,
-            revolved around the x axis using the benchmark’s axisymmetry. Colors
-            share a fixed linear signed scale. The finite display omits
-            densities below 0.005% of that scale; it does not truncate the
-            energy integral.
+            The wireframe solves |∇Φ| = 1 for the selected metric (g₀₀ = 0, a
+            stationary limit, not an event horizon or a material hull). Dashed
+            circles mark the 10 m cabin; the 8 m craft is schematic. The 3D
+            density uses direct metric samples, revolved about x by axisymmetry,
+            with a fixed symmetric signed color scale. A common asinh contrast
+            transform makes weak negative regions visible; equal positive and
+            negative magnitudes receive equal contrast. Red negative-density
+            points have larger glyphs and greater opacity for visibility; those
+            display aids do not encode their magnitude. Display samples below
+            0.005% are omitted; the energy integral retains the tail.
+          </p>
+          <p id="optical-scope">
+            The quiet Hipparcos sky uses measured stellar directions and V
+            magnitudes (J1991.25). Its orientation relative to the bubble is a
+            reference choice. Backward null-ray integration predicts angular
+            deflection for an instantaneous Eulerian observer at the camera.
+            Colors and exposure stay fixed; spectral shifts and magnification
+            photometry are not predicted. The geometry is a coordinate overlay.
+            Lensing applies to the reference sky. The lens icon toggles the
+            reference sky for comparison.
           </p>
           <p>
-            Moving markers use a shared coordinate time and piecewise-linear
-            interpolation of the supplied finite null-ray integrations. Playback
-            slows their finite time interval to a 12-second loop; it is not
-            real-time travel. The stationary density field does not evolve.
-            Sphere rotation in the mass comparison is illustrative.
+            Optics use a cached, interpolated angular map and finite numerical
+            integration. Unresolved directions show no stellar light; this does
+            not establish a horizon. Numerical approximations have no rigorous
+            global error bound. The floor remains flat because these spatial
+            slices are Euclidean.
+          </p>
+          <p>
+            Saturn is a placed reference source, 1.2 million km away, with a
+            60,268 km equatorial radius, 54,364 km polar radius and measured
+            principal ring edges. It is shaded as an oblate ellipsoid with thin
+            rings. The same calculated angular deflection acts on its entire
+            image. Placement, sunlight, bands and fixed exposure are
+            illustrative; this is not a Solar System ephemeris. Saturn’s gravity
+            and detailed atmospheric and ring radiative transfer are omitted.
+          </p>
+          <p>
+            The density field and selected-metric surface are stationary.
+            Rotation in the mass comparison is illustrative, not a prediction of
+            material motion. The ship’s finite outgoing-ray integrations remain
+            available in the scientific data and light-path details.
           </p>
           <p>
             The annihilation comparison uses E = 2mc²: m kilograms of antimatter
@@ -349,10 +383,10 @@
             the two masses, not their predicted appearance.
           </p>
           <p>
-            Only supplied finite null-ray integrations are drawn. Imported files
-            report their own numerical checks; the browser does not verify their
-            calculations. History dates are recorded evaluation times, not
-            certification dates. Local imports are saved in this browser.
+            Light-path details use supplied finite null-ray integrations.
+            Imported files report their own numerical checks; the browser does
+            not verify their calculations. History dates are recorded evaluation
+            times, not certification dates.
           </p>
           <p class="comparison-sources">
             <a
@@ -383,6 +417,44 @@
             rel="noopener noreferrer"
             >Rodal, 2025 ↗</a
           >
+          ·
+          <a
+            href="https://heasarc.gsfc.nasa.gov/W3Browse/catalog/hipparcos.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Hipparcos · NASA HEASARC ↗</a
+          >
+          ·
+          <a
+            href="https://nssdc.gsfc.nasa.gov/planetary/factsheet/satringfact.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Saturn rings · NASA ↗</a
+          >
+        </div>
+      </dialog>
+      <dialog id="ray-dialog" aria-labelledby="ray-heading">
+        <div class="dialog-heading">
+          <h2 id="ray-heading">Light ray</h2>
+          <button
+            id="ray-close"
+            class="icon-button"
+            type="button"
+            aria-label="Close light ray"
+          >
+            ×
+          </button>
+        </div>
+        <div class="dialog-body">
+          <select id="ray-select" aria-label="Emission direction"></select>
+          <p id="ray-explanation"></p>
+          <dl id="ray-fields"></dl>
+          <p>
+            These are test photons emitted at the ship’s centre, not exhaust or
+            thrust. The angle is measured from +x in the emitter’s Eulerian
+            frame. The table reports final stored samples. A finite integration
+            cannot establish an event horizon.
+          </p>
         </div>
       </dialog>
       <div id="live-status" class="sr-only" aria-live="polite"></div>
@@ -391,6 +463,9 @@
     <script src="history.js"></script>
     <script src="timeline.js"></script>
     <script src="physics.js"></script>
+    <script src="ray-story.js"></script>
+    <script src="metric.js"></script>
+    <script src="solution-data.js"></script>
     <script src="app.js"></script>
     <script src="equivalence.js"></script>
     <script type="module" src="scene.js"></script>

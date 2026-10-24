@@ -2,6 +2,30 @@
   "schema_version": 1,
   "sources": [
     {
+      "id": "hipparcos-heasarc",
+      "type": "official_scientific_catalogue",
+      "url": "https://heasarc.gsfc.nasa.gov/W3Browse/catalog/hipparcos.html",
+      "used_for": "ESA Hipparcos 1997 sky positions and V magnitudes at J1991.25, NASA HEASARC mirror. The quiet display selects V<5.5 from the retained V<6.5 subset."
+    },
+    {
+      "id": "saturn-rings-nasa",
+      "type": "official_scientific_reference",
+      "url": "https://nssdc.gsfc.nasa.gov/planetary/factsheet/satringfact.html",
+      "used_for": "Saturn reference-source equatorial radius, principal C/B/A ring edges and representative optical-depth ranges. Placement and Lambert appearance are illustrative."
+    },
+    {
+      "id": "saturn-cassini-shape",
+      "type": "official_scientific_reference",
+      "url": "https://atmos.nmsu.edu/data_and_services/atmospheres_data/Cassini/sci-saturn.html",
+      "used_for": "Cassini reference ellipsoid at 1 bar: equatorial radius 60268 km and polar radius 54364 km, attributed to Lindal et al. 1985. A simplified shape, not a detailed Saturn atmosphere."
+    },
+    {
+      "id": "webgl-float-targets",
+      "type": "official_specification",
+      "url": "https://registry.khronos.org/webgl/extensions/EXT_color_buffer_float/",
+      "used_for": "GPU floating-point render targets for the calculated backward null-ray angular map."
+    },
+    {
       "id": "cern-annihilation",
       "type": "official_scientific_reference",
       "url": "https://home.cern/science/physics/antimatter/",
@@ -34,7 +58,10 @@
       "id": "bobrick-martire-2021",
       "type": "published_research",
       "title": "Introducing Physical Warp Drives",
-      "authors": ["Alexey Bobrick", "Gianni Martire"],
+      "authors": [
+        "Alexey Bobrick",
+        "Gianni Martire"
+      ],
       "doi": "10.1088/1361-6382/abdf6e",
       "url": "https://arxiv.org/html/2102.06824v2",
       "used_for": "Comparison with Appendix A.3 radial optimizer and section 4.2 longitudinal flattening. Not the selected benchmark."

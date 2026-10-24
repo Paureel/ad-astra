@@ -13,7 +13,14 @@ assert.deepEqual(densityRGB(0, 10), DENSITY_COLORS.zero);
 assert.deepEqual(densityRGB(-10, 10), DENSITY_COLORS.negative);
 assert.deepEqual(densityRGB(10, 10), DENSITY_COLORS.positive);
 assert.deepEqual(densityRGB(1e99, 10), DENSITY_COLORS.positive);
-assert.deepEqual(densityRGB(5, 10), [47, 124, 140]);
+// The shared symmetric asinh mapping reveals a negative peak at 6% of scale.
+const contrast = Math.asinh(6) / Math.asinh(100);
+const negative = densityRGB(-0.6, 10),
+  positive = densityRGB(0.6, 10);
+assert.ok(negative[0] > 120 && negative[0] > negative[2]);
+assert.ok(Math.abs((negative[0] - 15) / (255 - 15) - contrast) < 0.003);
+assert.ok(Math.abs((positive[1] - 23) / (225 - 23) - contrast) < 0.003);
+assert.ok(densityRGB(1, 10)[1] < densityRGB(2, 10)[1]);
 assert.throws(() => densityRGB(NaN, 10));
 assert.throws(() => densityRGB(1, 0));
 const onePair = annihilationEquivalent(pairEnergy);

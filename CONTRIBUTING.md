@@ -131,6 +131,13 @@ payload model is explicitly included in the benchmark. Screenshots and
 animations must identify the candidate and benchmark from which they were
 generated.
 
+For new timeline entries, run `make display-data` after the history workflow.
+The display generator resolves exact candidate files by the report's digest;
+it does not require adding another hard-coded browser case. It independently
+samples the selected surface and density without changing any scientific score.
+Document optical approximations and actual performance measurements when changing
+rendering. See `docs/VISUALIZATION_OPTICS.md` for equations and audit hooks.
+
 ## Review and acceptance
 
 Use the PR template. List actual commands and outcomes, not a general statement

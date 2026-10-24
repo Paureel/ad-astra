@@ -8,13 +8,17 @@
     negative: [255, 110, 144],
     positive: [79, 225, 237],
   };
+  // One symmetric contrast transform for both signs, candidates and slices.
+  const DENSITY_CONTRAST = 0.01;
 
   function densityRGB(value, scale) {
     if (!Number.isFinite(value) || !Number.isFinite(scale) || scale <= 0)
       throw new Error(
         "Density color requires a finite value and positive finite scale.",
       );
-    const fraction = Math.min(1, Math.abs(value) / scale);
+    const fraction =
+      Math.asinh(Math.min(1, Math.abs(value) / scale) / DENSITY_CONTRAST) /
+      Math.asinh(1 / DENSITY_CONTRAST);
     const end = value < 0 ? DENSITY_COLORS.negative : DENSITY_COLORS.positive;
     return DENSITY_COLORS.zero.map((v, i) =>
       Math.round(v + (end[i] - v) * fraction),
@@ -79,6 +83,7 @@
 
   const API = {
     DENSITY_COLORS,
+    DENSITY_CONTRAST,
     densityRGB,
     C_M_S,
     EARTH_MASS_KG,
