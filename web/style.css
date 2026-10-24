@@ -61,13 +61,16 @@ button svg {
   --timeline-inset: 3.4%;
   --history-height: 168px;
   --timeline-header: 32px;
-  --timeline-bottom: 44px;
+  --timeline-bottom: calc(44px + env(safe-area-inset-bottom, 0px));
+  --timeline-controls-space: 24px;
   --timeline-clearance: calc(
-    var(--timeline-bottom) + var(--history-height) + var(--timeline-header) + 24px
+    var(--timeline-bottom) + var(--history-height) + var(--timeline-header) +
+      var(--timeline-controls-space)
   );
   position: relative;
-  min-height: 640px;
+  min-height: 0;
   height: 100svh;
+  height: 100dvh;
   overflow: hidden;
 }
 #scene-container {
@@ -364,12 +367,13 @@ header > * {
 }
 .timeline {
   position: absolute;
+  z-index: 2;
   bottom: var(--timeline-bottom);
   left: 0;
   right: 0;
-  padding-bottom: 24px;
+  padding-bottom: var(--timeline-controls-space);
   border-top: 1px solid #718bb545;
-  background: linear-gradient(180deg, #0b1529eb, #090f21f7);
+  background: linear-gradient(180deg, #0b1529, #090f21);
   box-shadow: 0 -12px 36px #050a143d;
   pointer-events: none;
 }
@@ -508,7 +512,7 @@ header > * {
 }
 footer {
   position: absolute;
-  bottom: 25px;
+  bottom: calc(25px + env(safe-area-inset-bottom, 0px));
   left: 3.4%;
   right: 3.4%;
   display: flex;
@@ -716,7 +720,7 @@ dialog::backdrop {
     font-size: 45px;
   }
   #experience {
-    --timeline-bottom: 60px;
+    --timeline-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
     --history-height: 188px;
   }
   .scale-bar {
@@ -802,7 +806,24 @@ dialog::backdrop {
   }
   #experience {
     --timeline-inset: 5%;
-    --history-height: 160px;
+    --history-height: clamp(128px, 30dvh, 190px);
+    --timeline-header: 44px;
+    --timeline-controls-space: 48px;
+  }
+  .timeline summary {
+    justify-content: space-between;
+    font-size: 12px;
+  }
+  .timeline-controls {
+    opacity: 1;
+    bottom: -44px;
+  }
+  .timeline-controls button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .timeline-controls input {
+    height: 44px;
   }
   .timeline .value-label {
     font-size: 10px;
@@ -854,9 +875,6 @@ dialog::backdrop {
   }
   .equivalence-formula {
     font-size: 8px;
-  }
-  #experience {
-    min-height: 640px;
   }
   header {
     padding: 22px 6%;
@@ -953,9 +971,7 @@ dialog::backdrop {
   }
   #experience {
     --timeline-inset: 6%;
-    --history-height: 190px;
-    --timeline-bottom: 43px;
-    --timeline-header: 36px;
+    --timeline-bottom: calc(43px + env(safe-area-inset-bottom, 0px));
   }
   .timeline text {
     font-size: 8px;
@@ -967,15 +983,13 @@ dialog::backdrop {
     font-size: 8px;
   }
   .timeline-controls {
-    opacity: 1;
-    bottom: -18px;
     gap: 12px;
   }
   .timeline-controls input {
     width: 80px;
   }
   footer {
-    bottom: 23px;
+    bottom: calc(23px + env(safe-area-inset-bottom, 0px));
     left: 6%;
     right: 6%;
     font-size: 8px;
@@ -1047,6 +1061,13 @@ dialog::backdrop {
   }
   #experience:has(.timeline[open]) .scene-tools button {
     width: 24px;
+  }
+}
+
+@media (max-width: 800px) and (max-height: 620px) {
+  #experience:has(.timeline[open])
+    :is(.scene-tools, .scale-bar, .field-key, #slice-panel, #equivalence) {
+    visibility: hidden;
   }
 }
 
