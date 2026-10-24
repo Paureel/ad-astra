@@ -14,6 +14,10 @@ scenario. Its concrete displayed energy is the refined **1.5448691 × 10⁴⁵ J
 estimate; the replayed continuum interval remains in provenance and exports.
 The timeline starts as a slim bottom strip. Its native disclosure control
 expands the chart on demand and collapses it again, by pointer or keyboard.
+The scene fits the dynamic viewport rather than a fixed minimum height, so the
+timeline remains reachable on short phones. Mobile disclosure and history
+controls have 44 px targets; the expanded chart adapts to the viewport height.
+On short screens, opening it temporarily hides auxiliary scene overlays.
 The icon controls select layers, camera views, the density slice, and PNG export.
 Controls expose accessible names, focus states, and tooltips. Arrow keys rotate
 the focused canvas, +/− zoom, and 0 restores the perspective camera. Scroll zoom
